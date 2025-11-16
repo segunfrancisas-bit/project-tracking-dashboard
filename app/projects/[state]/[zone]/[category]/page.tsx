@@ -1,88 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
-
-interface Project {
-  sNo: number;
-  project: string;
-  contractor: string;
-  workProgress: number;
-  targetProgress: number;
-  site: string;
-  contractSum: number;
-  amountPaid: number;
-  valueOfWorkDone: number;
-  zone: string;
-  category: string;
-}
-
-const allProjects: Project[] = [
-  {
-    sNo: 1,
-    project: "BLOCK A (G+5)",
-    contractor: "HI-BIMS",
-    workProgress: 79,
-    targetProgress: 67,
-    site: "ORCHID 1",
-    contractSum: 109100135,
-    amountPaid: 92465635,
-    valueOfWorkDone: 95671133.4,
-    zone: "LAGOS ZONE 1",
-    category: "piling",
-  },
-  {
-    sNo: 2,
-    project: "BLOCK B (G+5)",
-    contractor: "HI-BIMS",
-    workProgress: 83,
-    targetProgress: 71,
-    site: "ORCHID 1",
-    contractSum: 106486993.6,
-    amountPaid: 84156213,
-    valueOfWorkDone: 70691218.92,
-    zone: "LAGOS ZONE 1",
-    category: "piling",
-  },
-  {
-    sNo: 3,
-    project: "BLOCK C (G+5)",
-    contractor: "HI-BIMS",
-    workProgress: 87,
-    targetProgress: 75,
-    site: "ORCHID 1",
-    contractSum: 66623119,
-    amountPaid: 24621632,
-    valueOfWorkDone: 20682170.88,
-    zone: "LAGOS ZONE 1",
-    category: "piling",
-  },
-  {
-    sNo: 9,
-    project: "BLOCK A (G+5)",
-    contractor: "ADETECH",
-    workProgress: 100,
-    targetProgress: 80,
-    site: "ORCHID 2",
-    contractSum: 62228780,
-    amountPaid: 59564656,
-    valueOfWorkDone: 50034311.04,
-    zone: "LAGOS ZONE 1",
-    category: "piling",
-  },
-  {
-    sNo: 10,
-    project: "BLOCK B (G+5)",
-    contractor: "ADETECH",
-    workProgress: 100,
-    targetProgress: 88,
-    site: "ORCHID 2",
-    contractSum: 62071785.8,
-    amountPaid: 60896546,
-    valueOfWorkDone: 51153098.64,
-    zone: "LAGOS ZONE 1",
-    category: "piling",
-  },
-];
+import { allProjects, Project } from "../../../data/projects"; // <- fixed path
 
 const formatCurrency = (num: number) =>
   new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }).format(
@@ -139,10 +58,10 @@ export default function CategoryPage() {
               let dotColor = "bg-gray-400"; // default balanced
               let tooltipText = "Balanced";
               if (project.amountPaid > project.valueOfWorkDone) {
-                dotColor = "bg-red-700"; // deeper red
+                dotColor = "bg-red-700";
                 tooltipText = "Exposed";
               } else if (project.valueOfWorkDone > project.amountPaid) {
-                dotColor = "bg-green-700"; // deeper green
+                dotColor = "bg-green-700";
                 tooltipText = "Not-Exposed";
               }
 
