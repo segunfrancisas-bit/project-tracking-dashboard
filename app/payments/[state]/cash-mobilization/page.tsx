@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PaymentCard, { Status } from "../milestone-payment/PaymentCard";
 
 // Define type for cash mobilization data
@@ -13,24 +13,27 @@ interface CashMobilizationItem {
   dateRequested: string;
 }
 
-// Typed data array
-const cashMobilizationData: CashMobilizationItem[] = [
+// Existing hardcoded data
+const initialData: CashMobilizationItem[] = [
   { project: "Orchid 2", contractor: "REALMYTE", amount: 45150, category: "INFRASTRUCTURE", status: "PENDING", dateRequested: "27-Oct-25" },
   { project: "Orchid 2", contractor: "REALMYTE", amount: 2425850, category: "BUILDING", status: "OVERDUE", dateRequested: "28-Oct-25" },
   { project: "Orchid 1", contractor: "REALMYTE", amount: 63210, category: "PILING", status: "PAID", dateRequested: "29-Oct-25" },
   { project: "Orchid 1", contractor: "REALMYTE", amount: 131950, category: "INFRASTRUCTURE", status: "PAID", dateRequested: "30-Oct-25" },
   { project: "Orchid 1", contractor: "REALMYTE", amount: 2076900, category: "BUILDING", status: "PAID", dateRequested: "31-Oct-25" },
-  { project: "Orchid 2", contractor: "REALMYTE", amount: 527800, category: "BUILDING", status: "PENDING", dateRequested: "01-Nov-25" },
-  { project: "Orchid 1", contractor: "REALMYTE", amount: 70000, category: "PILING", status: "OVERDUE", dateRequested: "02-Nov-25" },
-  { project: "Orchid 1", contractor: "REALMYTE", amount: 361200, category: "INFRASTRUCTURE", status: "PAID", dateRequested: "03-Nov-25" },
-  { project: "Orchid 2", contractor: "REALMYTE", amount: 171061.8, category: "BUILDING", status: "PENDING", dateRequested: "04-Nov-25" },
-  { project: "Orchid 2", contractor: "REALMYTE", amount: 744100, category: "BUILDING", status: "PAID", dateRequested: "05-Nov-25" },
 ];
 
 export default function CashMobilizationPage() {
+  const [data, setData] = useState<CashMobilizationItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredData = cashMobilizationData.filter((item) => {
+  useEffect(() => {
+    const savedData = localStorage.getItem("cashMobilizationData");
+    const parsed = savedData ? JSON.parse(savedData) : [];
+    // Merge new entries at the top
+    setData([...parsed, ...initialData]);
+  }, []);
+
+  const filteredData = data.filter((item) => {
     const term = searchTerm.toLowerCase();
     return (
       item.project.toLowerCase().includes(term) ||
@@ -41,14 +44,14 @@ export default function CashMobilizationPage() {
     );
   });
 
-  const pendingCount = cashMobilizationData.filter(x => x.status === "PENDING").length;
-  const overdueCount = cashMobilizationData.filter(x => x.status === "OVERDUE").length;
+  const pendingCount = data.filter(x => x.status === "PENDING").length;
+  const overdueCount = data.filter(x => x.status === "OVERDUE").length;
 
   return (
     <div className="relative min-h-screen bg-gray-50 p-6 pb-24">
       <h1 className="text-2xl font-bold text-center mb-4 text-black">Cash Mobilization</h1>
 
-      {/* Search Bar */}
+      {/* Search */}
       <div className="mb-6 text-gray-700 flex justify-center">
         <input
           type="text"
@@ -69,7 +72,7 @@ export default function CashMobilizationPage() {
                 contractor={item.contractor}
                 amount={item.amount}
                 category={item.category}
-                status={item.status} // ✅ now typed correctly
+                status={item.status}
                 dateRequested={item.dateRequested}
               />
             ))}

@@ -19,19 +19,16 @@ export default function HomePage() {
       window.location.href = "/dashboard?name=Dr Ifeanyi";
     } else if (passcode === "RICHARD.CB") {
       window.location.href = "/dashboard?name=Dr Richard";
+    } else if (passcode === "CURCEL.CB") {
+      window.location.href = "/entry?name=CURCEL";
     } else {
       setError("Invalid passcode. Try again!");
     }
   };
 
   return (
-    <div
-      className="flex flex-col justify-between min-h-screen"
-      style={{ backgroundColor: "#FFFCF5" }}
-    >
+    <div className="flex flex-col justify-between min-h-screen" style={{ backgroundColor: "#FFFCF5" }}>
       <div className="flex flex-col items-center justify-center flex-1">
-        
-        {/* 3D POP-OUT HEADING */}
         <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-black mb-5 text-center whitespace-nowrap pop-out-text">
           Welcome to Vision - Your #1 Project Tracker
         </h1>
@@ -55,15 +52,9 @@ export default function HomePage() {
         {error && <p className="mt-4 text-red-500">{error}</p>}
       </div>
 
-      {/* Footer */}
       <footer className="bg-gray-200 shadow-inner p-4 text-center text-sm text-gray-700">
         © Vision by{" "}
-        <a
-          href="https://wa.me/2348140730579"
-          target="_blank"
-          className="hover:text-black transition"
-          style={{ textDecoration: "none" }}
-        >
+        <a href="https://wa.me/2348140730579" target="_blank" className="hover:text-black transition" style={{ textDecoration: "none" }}>
           C.Boaz🌴
         </a>
       </footer>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import PaymentCard, { Status } from "../milestone-payment/PaymentCard";
+import { useState, useEffect } from "react";
+import PaymentCard, { Status } from "./PaymentCard";
 
 // Type for Milestone data
 interface MilestoneItem {
@@ -14,20 +14,25 @@ interface MilestoneItem {
   presented: string;
 }
 
-// Typed data array
-const milestoneData: MilestoneItem[] = [
+// Hardcoded initial data
+const initialData: MilestoneItem[] = [
   { project: "Orchid 2", contractor: "REALMYTE", amount: 45150, category: "INFRASTRUCTURE", status: "PENDING", signOff: "27-Oct-25", presented: "29-Oct-25" },
   { project: "Orchid 2", contractor: "REALMYTE", amount: 2425850, category: "BUILDING", status: "OVERDUE", signOff: "27-Oct-25", presented: "29-Oct-25" },
   { project: "Orchid 1", contractor: "REALMYTE", amount: 63210, category: "PILING", status: "PAID", signOff: "27-Oct-25", presented: "29-Oct-25" },
-  { project: "Orchid 1", contractor: "REALMYTE", amount: 131950, category: "INFRASTRUCTURE", status: "PAID", signOff: "27-Oct-25", presented: "29-Oct-25" },
-  { project: "Orchid 1", contractor: "REALMYTE", amount: 2076900, category: "BUILDING", status: "PAID", signOff: "27-Oct-25", presented: "28-Oct-25" },
-  { project: "Orchid 2", contractor: "REALMYTE", amount: 527800, category: "BUILDING", status: "PENDING", signOff: "27-Oct-25", presented: "28-Oct-25" },
 ];
 
 export default function MilestonePaymentPage() {
+  const [data, setData] = useState<MilestoneItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredData = milestoneData.filter((item) => {
+  useEffect(() => {
+    const savedData = localStorage.getItem("milestoneData");
+    const parsed = savedData ? JSON.parse(savedData) : [];
+    // Merge new entries at the top
+    setData([...parsed, ...initialData]);
+  }, []);
+
+  const filteredData = data.filter((item) => {
     const term = searchTerm.toLowerCase();
     return (
       item.project.toLowerCase().includes(term) ||
@@ -39,8 +44,8 @@ export default function MilestonePaymentPage() {
     );
   });
 
-  const pendingCount = milestoneData.filter(x => x.status === "PENDING").length;
-  const overdueCount = milestoneData.filter(x => x.status === "OVERDUE").length;
+  const pendingCount = data.filter(x => x.status === "PENDING").length;
+  const overdueCount = data.filter(x => x.status === "OVERDUE").length;
 
   return (
     <div className="relative min-h-screen bg-gray-50 p-6 pb-24">
@@ -67,7 +72,7 @@ export default function MilestonePaymentPage() {
                 contractor={item.contractor}
                 amount={item.amount}
                 category={item.category}
-                status={item.status} // ✅ Typed correctly
+                status={item.status}
                 signOff={item.signOff}
                 presented={item.presented}
               />
