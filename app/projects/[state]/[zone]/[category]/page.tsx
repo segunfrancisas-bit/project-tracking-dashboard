@@ -1,7 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { allProjects, Project } from "../../../data/projects"; // <- fixed path
+import { allProjects } from "../../../data/projects";
 
 const formatCurrency = (num: number) =>
   new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }).format(
@@ -20,13 +20,24 @@ export default function CategoryPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const projects = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+
     return allProjects.filter((p) => {
       const matchesZone = p.zone.toLowerCase() === decodedZone.toLowerCase();
       const matchesCategory = p.category.toLowerCase() === category.toLowerCase();
+
+      // Determine dot color
+      let dotColor = "gray"; // default balanced
+      if (p.amountPaid > p.valueOfWorkDone) dotColor = "red"; // Exposed
+      else if (p.valueOfWorkDone > p.amountPaid) dotColor = "green"; // Not-Exposed
+
       const matchesSearch =
-        p.project.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.contractor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.site.toLowerCase().includes(searchTerm.toLowerCase());
+        p.project.toLowerCase().includes(term) ||
+        p.contractor.toLowerCase().includes(term) ||
+        p.site.toLowerCase().includes(term) ||
+        (term === "red" && dotColor === "red") ||
+        (term === "green" && dotColor === "green");
+
       return matchesZone && matchesCategory && matchesSearch;
     });
   }, [decodedZone, category, searchTerm]);
@@ -34,17 +45,21 @@ export default function CategoryPage() {
   return (
     <div className="flex flex-col min-h-screen bg-[#FDFBF5]">
       {/* Header */}
-      <header className="sticky top-0 bg-gray-300 shadow-md z-10 p-1">
+      <header className="sticky top-0 bg-gray-00 shadow-md z-10 p-2">
         <h1 className="text-2xl font-bold text-center text-black uppercase">
           Projects in {decodedZone} {category}
         </h1>
-        <input
-          type="text"
-          placeholder="Search by project, contractor or site"
-          className="w-full mt-2 p-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black text-black text-sm"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+
+        {/* SEARCH BAR */}
+        <div className="flex justify-center mt-2">
+          <input
+            type="text"
+            placeholder="Search by project, contractor, site, or dot color (red/green)..."
+            className="w-full max-w-lg p-3 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-black text-black text-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
       </header>
 
       {/* Projects Grid */}
@@ -54,30 +69,18 @@ export default function CategoryPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {projects.map((project) => {
-              // Exposure dot colors (top-right corner)
-              let dotColor = "bg-gray-400"; // default balanced
-              let tooltipText = "Balanced";
-              if (project.amountPaid > project.valueOfWorkDone) {
-                dotColor = "bg-red-700";
-                tooltipText = "Exposed";
-              } else if (project.valueOfWorkDone > project.amountPaid) {
+              let dotColor = "bg-gray-400";
+              if (project.amountPaid > project.valueOfWorkDone) dotColor = "bg-red-700";
+              else if (project.valueOfWorkDone > project.amountPaid)
                 dotColor = "bg-green-700";
-                tooltipText = "Not-Exposed";
-              }
 
               return (
                 <div
                   key={`${project.zone}-${project.sNo}-${project.contractor}-${project.site}`}
                   className="relative bg-gray-200 p-2 rounded-lg shadow text-black hover:bg-gray-600 hover:text-white transition text-xs group"
                 >
-                  {/* Exposure dot */}
                   <div className="absolute top-2 right-2 flex flex-col items-center">
-                    <span
-                      className={`w-3 h-3 rounded-full animate-pulse ${dotColor}`}
-                    ></span>
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity mt-1 text-[9px] bg-black text-white px-2 py-1 rounded-lg whitespace-nowrap z-50 absolute top-0 translate-y-[-120%]">
-                      {tooltipText}
-                    </span>
+                    <span className={`w-3 h-3 rounded-full animate-pulse ${dotColor}`}></span>
                   </div>
 
                   <h2 className="font-bold text-base mb-1">{project.project}</h2>

@@ -15,8 +15,8 @@ export interface Project {
 export const allProjects: Project[] = [
   {
     sNo: 1,
-    project: "BLOCK A (G+5)",
-    contractor: "HI-BIMS",
+    project: "SD-D1",
+    contractor: "GOLDVIEW",
     workProgress: 79,
     targetProgress: 67,
     site: "ORCHID 1",

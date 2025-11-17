@@ -1,81 +1,47 @@
 "use client";
+import { useState } from "react";
 
-import { useEffect, useState } from "react";
+export default function PaymentsPage() {
+  const [selectedState, setSelectedState] = useState<string | null>(null);
 
-export default function ProjectsPage() {
-  const [user, setUser] = useState("User");
-
-  // Temporary sample projects (we will make them dynamic later)
-  const [projects, setProjects] = useState([
-    {
-      title: "Foundation Work",
-      assignedTo: "Richard",
-      progress: 60,
-      lastUpdated: "2025-11-14",
-      status: "Ongoing",
-    },
-    {
-      title: "Roof Construction",
-      assignedTo: "Ifeanyi",
-      progress: 30,
-      lastUpdated: "2025-11-13",
-      status: "Pending",
-    },
-    {
-      title: "Interior Design",
-      assignedTo: "Tomi",
-      progress: 80,
-      lastUpdated: "2025-11-10",
-      status: "Ongoing",
-    },
-  ]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const nameParam = params.get("name");
-    if (nameParam) setUser(nameParam);
-  }, []);
+  const goToCategory = (state: string) => {
+    window.location.href = `/payments/${state}`;
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <h1 className="text-3xl font-bold text-black mb-6 text-center">
-        Projects Overview — Dr {user}
-      </h1>
+    <div className="min-h-screen flex flex-col bg-gray-100">
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projects.map((project, index) => (
-          <div
-            key={index}
-            className="bg-white shadow p-5 rounded-xl border border-gray-200"
-          >
-            <h2 className="text-xl font-semibold mb-2">{project.title}</h2>
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col items-center justify-center p-6">
+        <h1 className="text-3xl font-bold mb-8 text-black">Please select a state</h1>
 
-            <p className="text-sm text-gray-600">
-              Assigned to: <strong>{project.assignedTo}</strong>
-            </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {["lagos", "abuja"].map((state) => (
+            <button
+              key={state}
+              onClick={() => goToCategory(state)}
+              className="bg-gray-300 rounded-xl w-48 h-48 flex items-center justify-center 
+                         text-center text-black font-semibold text-lg 
+                         hover:bg-black hover:text-white transition-colors duration-300 shadow-lg"
+            >
+              {state.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </main>
 
-            <p className="text-sm text-gray-600">
-              Status: <strong>{project.status}</strong>
-            </p>
-
-            <p className="text-sm text-gray-600 mb-3">
-              Last Updated: {project.lastUpdated}
-            </p>
-
-            {/* Progress Bar */}
-            <div className="w-full bg-gray-300 rounded-full h-4 overflow-hidden">
-              <div
-                className="bg-blue-600 h-4 transition-all duration-500"
-                style={{ width: `${project.progress}%` }}
-              ></div>
-            </div>
-
-            <p className="text-right text-sm mt-1 font-medium">
-              {project.progress}%
-            </p>
-          </div>
-        ))}
-      </div>
+      {/* Footer (sticks to bottom, does NOT follow scroll) */}
+      <footer className="bg-gray-200 shadow-inner p-4 text-center text-sm text-gray-700">
+        © Vision by{" "}
+        <a
+          href="https://wa.me/2348140730579"
+          target="_blank"
+          className="hover:text-black transition"
+          style={{ textDecoration: "none" }}
+        >
+          C.Boaz🌴
+        </a>
+      </footer>
     </div>
   );
 }
