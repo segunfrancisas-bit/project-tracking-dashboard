@@ -24,3 +24,23 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ---------------------------------- */
+/*       3D POP-OUT SLOW PULSE        */
+/* ---------------------------------- */
+@keyframes popOutPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1); /* pop out bigger */
+    opacity: 0.8;           /* slight fade for effect */
+  }
+}
+
+/* Apply to heading with slower duration */
+.pop-out-text {
+  animation: popOutPulse 3s ease-in-out infinite; /* increased from 1.5s to 3s for slower pulse */
+  transform-origin: center;
+}
