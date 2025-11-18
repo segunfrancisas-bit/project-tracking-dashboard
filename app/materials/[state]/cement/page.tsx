@@ -1,36 +1,35 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import PaymentCard from "../../../components/PaymentCard";
-import { Status } from "@/lib/types"; // import type from types.ts
+import PaymentCard from "../../../components/PaymentCard"; // Import the card component
+import { Status } from "@/lib/types"; // Import the status type
 
-// Define type for cash mobilization data
-interface CashMobilizationItem {
+// Define type for cement data
+interface CementItem {
   project: string;
   contractor: string;
-  amount: number;
+  bags: number; // instead of amount or tons
   category: string;
   status: Status;
   dateRequested: string;
 }
 
-// Existing hardcoded data
-const initialData: CashMobilizationItem[] = [
-  { project: "Orchid 2", contractor: "REALMYTE", amount: 45150, category: "INFRASTRUCTURE", status: "PENDING", dateRequested: "27-Oct-25" },
-  { project: "Orchid 2", contractor: "REALMYTE", amount: 2425850, category: "BUILDING", status: "OVERDUE", dateRequested: "28-Oct-25" },
-  { project: "Orchid 1", contractor: "REALMYTE", amount: 63210, category: "PILING", status: "PAID", dateRequested: "29-Oct-25" },
-  { project: "Orchid 1", contractor: "REALMYTE", amount: 131950, category: "INFRASTRUCTURE", status: "PAID", dateRequested: "30-Oct-25" },
-  { project: "Orchid 1", contractor: "REALMYTE", amount: 2076900, category: "BUILDING", status: "PAID", dateRequested: "31-Oct-25" },
+// Hardcoded sample data
+const initialData: CementItem[] = [
+  { project: "Orchid 2", contractor: "REALMYTE", bags: 100, category: "BUILDING", status: "PENDING", dateRequested: "27-Oct-25" },
+  { project: "Orchid 2", contractor: "REALMYTE", bags: 500, category: "INFRASTRUCTURE", status: "OVERDUE", dateRequested: "28-Oct-25" },
+  { project: "Orchid 1", contractor: "REALMYTE", bags: 50, category: "PILING", status: "DELIVERED", dateRequested: "29-Oct-25" },
+  { project: "Orchid 1", contractor: "REALMYTE", bags: 150, category: "BUILDING", status: "DELIVERED", dateRequested: "30-Oct-25" },
+  { project: "Orchid 1", contractor: "REALMYTE", bags: 200, category: "INFRASTRUCTURE", status: "DELIVERED", dateRequested: "31-Oct-25" },
 ];
 
-export default function CashMobilizationPage() {
-  const [data, setData] = useState<CashMobilizationItem[]>([]);
+export default function CementPage() {
+  const [data, setData] = useState<CementItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const savedData = localStorage.getItem("cashMobilizationData");
+    const savedData = localStorage.getItem("cementData");
     const parsed = savedData ? JSON.parse(savedData) : [];
-    // Merge new entries at the top
     setData([...parsed, ...initialData]);
   }, []);
 
@@ -40,7 +39,7 @@ export default function CashMobilizationPage() {
       item.project.toLowerCase().includes(term) ||
       item.contractor.toLowerCase().includes(term) ||
       item.status.toLowerCase().includes(term) ||
-      item.amount.toString().includes(term) ||
+      item.bags.toString().includes(term) ||
       item.dateRequested.toLowerCase().includes(term)
     );
   });
@@ -50,13 +49,13 @@ export default function CashMobilizationPage() {
 
   return (
     <div className="relative min-h-screen bg-gray-50 p-6 pb-24">
-      <h1 className="text-2xl font-bold text-center mb-4 text-black">Cash Mobilization</h1>
+      <h1 className="text-2xl font-bold text-center mb-4 text-black">Cement</h1>
 
       {/* Search */}
       <div className="mb-6 text-gray-700 flex justify-center">
         <input
           type="text"
-          placeholder="Search by project, contractor, status, amount, or date..."
+          placeholder="Search by project, contractor, status, bags, or date..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full max-w-lg p-3 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
@@ -71,10 +70,11 @@ export default function CashMobilizationPage() {
                 key={index}
                 project={item.project}
                 contractor={item.contractor}
-                amount={item.amount}
+                amount={item.bags} // using "bags" instead of amount
                 category={item.category}
-                status={item.status}
+                status={item.status} // PENDING / OVERDUE / DELIVERED
                 dateRequested={item.dateRequested}
+                unit="Bags" // optional, for display in PaymentCard
               />
             ))}
           </div>

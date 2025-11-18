@@ -9,27 +9,36 @@ export default function HomePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (passcode === "POTUS101T") {
-      window.location.href = "/creator-dashboard?name=Captain";
-    } else if (passcode === "TOMICOTS") {
-      window.location.href = "/dashboard?name=Queen";
-    } else if (passcode === "PETER.CB") {
-      window.location.href = "/dashboard?name=QS PETER";  
-    } else if (passcode === "IFEANYI.CB") {
-      window.location.href = "/dashboard?name=Dr Ifeanyi";
-    } else if (passcode === "RICHARD.CB") {
-      window.location.href = "/dashboard?name=Dr Richard";
-    } else if (passcode === "CURCEL.CB") {
-      window.location.href = "/entry?name=CURCEL";
+    const contractorPasscodes: Record<string, string> = {
+      DUTUM101: "Dutum",
+      OAT101: "OAT",
+      CURCEL101: "Curcel",
+      NETENGIN101: "Netengin",
+      TABIS101: "Tabis",
+      FASTTRACK101: "Fastrack",
+    };
+
+    const normalUsers: Record<string, string> = {
+      "POTUS101T": "Captain",
+      "TOMICOTS": "Queen",
+      "PETER.CB": "QS PETER",
+      "IFEANYI.CB": "Dr Ifeanyi",
+      "RICHARD.CB": "Dr Richard",
+    };
+
+    if (contractorPasscodes[passcode]) {
+      window.location.href = `/entry/${contractorPasscodes[passcode]}`;
+    } else if (normalUsers[passcode]) {
+      window.location.href = `/dashboard?name=${normalUsers[passcode]}`;
     } else {
       setError("Invalid passcode. Try again!");
     }
   };
 
   return (
-    <div className="flex flex-col justify-between min-h-screen" style={{ backgroundColor: "#FFFCF5" }}>
+    <div className="flex flex-col justify-between min-h-screen bg-[#FFFCF5]">
       <div className="flex flex-col items-center justify-center flex-1">
-        <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-black mb-5 text-center whitespace-nowrap pop-out-text">
+        <h1 className="text-3xl font-bold text-black mb-5 text-center">
           Welcome to Vision - Your #1 Project Tracker
         </h1>
 
@@ -48,14 +57,18 @@ export default function HomePage() {
             Access
           </button>
         </form>
-
         {error && <p className="mt-4 text-red-500">{error}</p>}
       </div>
 
-      <footer className="bg-gray-200 shadow-inner p-4 text-center text-sm text-gray-700">
+      <footer className="w-full bg-gray-200 shadow-inner p-4 text-center text-sm text-gray-700">
         © Vision by{" "}
-        <a href="https://wa.me/2348140730579" target="_blank" className="hover:text-black transition" style={{ textDecoration: "none" }}>
-          C.Boaz🌴
+        <a
+          href="https://wa.me/2348140730579"
+          target="_blank"
+          className="hover:text-black transition"
+          style={{ textDecoration: "none" }}
+        >
+          Iroko🌴
         </a>
       </footer>
     </div>

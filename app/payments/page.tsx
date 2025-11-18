@@ -39,7 +39,7 @@ export default function PaymentsPage() {
           className="hover:text-black transition"
           style={{ textDecoration: "none" }}
         >
-          C.Boaz🌴
+          Iroko🌴
         </a>
       </footer>
     </div>

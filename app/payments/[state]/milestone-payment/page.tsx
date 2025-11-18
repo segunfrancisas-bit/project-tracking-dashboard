@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import PaymentCard, { Status } from "./PaymentCard";
+import PaymentCard from "../../../components/PaymentCard";
+import { Status } from "@/lib/types"; // import type from types.ts
 
 // Type for Milestone data
 interface MilestoneItem {
