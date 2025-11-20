@@ -57,10 +57,10 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <footer className="w-full bg-gray-200 shadow-inner p-4 text-center text-sm text-gray-700">
-        © Vision by{" "}
+      <footer className="w-full bg-[#FFFDF7] p-4 text-center text-sm text-gray-700">
+        © 2025 Vision by{" "}
         <a href="https://wa.me/2348140730579" target="_blank" className="hover:text-black transition">
-          C.Boaz🌴
+          Iroko🌴
         </a>
       </footer>
 

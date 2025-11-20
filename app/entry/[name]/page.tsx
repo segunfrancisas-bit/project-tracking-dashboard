@@ -15,13 +15,13 @@ export default function StateSelectionPage() {
 
         <div className="flex flex-col md:flex-row gap-6">
           <button
-            className="px-12 py-12 bg-white shadow-lg rounded-xl text-black text-xl font-bold w-64"
+            className="px-12 py-12 bg-white shadow-lg rounded-xl text-black text-xl font-bold w-64 transition-all duration-300 hover:bg-black hover:text-white hover:scale-105"
             onClick={() => router.push(`/entry/${name}/lagos`)}
           >
             Lagos
           </button>
           <button
-            className="px-12 py-12 bg-white shadow-lg rounded-xl text-black text-xl font-bold w-64"
+            className="px-12 py-12 bg-white shadow-lg rounded-xl text-black text-xl font-bold w-64 transition-all duration-300 hover:bg-black hover:text-white hover:scale-105"
             onClick={() => router.push(`/entry/${name}/abuja`)}
           >
             Abuja
@@ -29,8 +29,8 @@ export default function StateSelectionPage() {
         </div>
       </div>
 
-      <footer className="bg-gray-200 shadow-inner p-4 text-center text-sm text-gray-700">
-        © Vision by{" "}
+      <footer className="bg-[#FFFDF7] p-4 text-center text-sm text-gray-700">
+        © 2025 Vision by{" "}
         <a href="https://wa.me/2348140730579" className="hover:text-black transition">
           Iroko🌴
         </a>

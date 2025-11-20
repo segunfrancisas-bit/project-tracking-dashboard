@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import PaymentCard from "../../../components/PaymentCard";
-import { Status } from "@/lib/types"; // import type from types.ts
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
+import PaymentCard, { Status } from "@/components/PaymentCard";
 
-// Type for Milestone data
 interface MilestoneItem {
   project: string;
   contractor: string;
@@ -15,23 +15,31 @@ interface MilestoneItem {
   presented: string;
 }
 
-// Hardcoded initial data
-const initialData: MilestoneItem[] = [
-  { project: "Orchid 2", contractor: "REALMYTE", amount: 45150, category: "INFRASTRUCTURE", status: "PENDING", signOff: "27-Oct-25", presented: "29-Oct-25" },
-  { project: "Orchid 2", contractor: "REALMYTE", amount: 2425850, category: "BUILDING", status: "OVERDUE", signOff: "27-Oct-25", presented: "29-Oct-25" },
-  { project: "Orchid 1", contractor: "REALMYTE", amount: 63210, category: "PILING", status: "PAID", signOff: "27-Oct-25", presented: "29-Oct-25" },
-];
-
 export default function MilestonePaymentPage() {
+  const params = useParams();
+  const rawState = params?.state;
+const state = Array.isArray(rawState)
+  ? rawState[0].toUpperCase()
+  : rawState?.toUpperCase() || "";
+
   const [data, setData] = useState<MilestoneItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const savedData = localStorage.getItem("milestoneData");
-    const parsed = savedData ? JSON.parse(savedData) : [];
-    // Merge new entries at the top
-    setData([...parsed, ...initialData]);
-  }, []);
+    const fetchData = async () => {
+      if (!state) return;
+
+      const { data, error } = await supabase
+        .from("milestone_request")
+        .select("*")
+        .eq("state", state);
+
+      if (!error && data) setData(data as MilestoneItem[]);
+      setLoading(false);
+    };
+    fetchData();
+  }, [state]);
 
   const filteredData = data.filter((item) => {
     const term = searchTerm.toLowerCase();
@@ -49,10 +57,11 @@ export default function MilestonePaymentPage() {
   const overdueCount = data.filter(x => x.status === "OVERDUE").length;
 
   return (
-    <div className="relative min-h-screen bg-gray-50 p-6 pb-24">
-      <h1 className="text-2xl font-bold text-center mb-4 text-black">Milestone Payments</h1>
+    <div className="relative min-h-screen bg-[#FFFDF7] p-6 pb-24">
+      <h1 className="text-2xl font-bold text-center mb-4 text-black">
+        Milestone Payments – {state}
+      </h1>
 
-      {/* Search */}
       <div className="mb-6 text-gray-700 flex justify-center">
         <input
           type="text"
@@ -64,7 +73,9 @@ export default function MilestonePaymentPage() {
       </div>
 
       <main>
-        {filteredData.length > 0 ? (
+        {loading ? (
+          <p className="text-center text-gray-500 mt-10">Loading...</p>
+        ) : filteredData.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {filteredData.map((item, index) => (
               <PaymentCard
@@ -72,7 +83,7 @@ export default function MilestonePaymentPage() {
                 project={item.project}
                 contractor={item.contractor}
                 amount={item.amount}
-                category={item.category}
+                category={item.category as "BUILDING" | "INFRASTRUCTURE" | "PILING"}
                 status={item.status}
                 signOff={item.signOff}
                 presented={item.presented}
@@ -84,16 +95,10 @@ export default function MilestonePaymentPage() {
         )}
       </main>
 
-      {/* Summary */}
       <div className="fixed bottom-24 right-6 bg-gray-200 text-gray-800 p-3 rounded-lg shadow-lg text-sm">
         <p><strong>Pending:</strong> {pendingCount}</p>
         <p><strong>Overdue:</strong> {overdueCount}</p>
       </div>
-
-      {/* Footer */}
-      <footer className="fixed bottom-0 left-0 w-full bg-gray-200 p-4 text-center text-gray-700 text-sm shadow-inner z-50">
-        © Vision by <a href="https://wa.me/2348140730579" className="hover:text-black">C.Boaz🌴</a>
-      </footer>
     </div>
   );
 }

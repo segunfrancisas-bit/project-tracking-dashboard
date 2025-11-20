@@ -1,37 +1,46 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import PaymentCard from "../../../components/PaymentCard"; // reuse the same card if structure is similar
-import { Status } from "@/lib/types"; // import Status from types.ts
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
+import PaymentCard, { Status } from "@/components/PaymentCard";
 
-// Define type for reinforcement data
 interface ReinforcementItem {
   project: string;
   contractor: string;
-  tons: number; // replace amount with tons
+  tons: number;
   category: string;
   status: Status;
   dateRequested: string;
 }
 
-// Example hardcoded data
-const initialData: ReinforcementItem[] = [
-  { project: "Orchid 2", contractor: "REALMYTE", tons: 10, category: "INFRASTRUCTURE", status: "PENDING", dateRequested: "27-Oct-25" },
-  { project: "Orchid 2", contractor: "REALMYTE", tons: 200, category: "BUILDING", status: "OVERDUE", dateRequested: "28-Oct-25" },
-  { project: "Orchid 1", contractor: "REALMYTE", tons: 15, category: "PILING", status: "DELIVERED", dateRequested: "29-Oct-25" },
-  { project: "Orchid 1", contractor: "REALMYTE", tons: 35, category: "INFRASTRUCTURE", status: "DELIVERED", dateRequested: "30-Oct-25" },
-  { project: "Orchid 1", contractor: "REALMYTE", tons: 70, category: "BUILDING", status: "DELIVERED", dateRequested: "31-Oct-25" },
-];
-
 export default function ReinforcementPage() {
+  const params = useParams();
+
+const state = (() => {
+  const value = params?.state;
+  if (Array.isArray(value)) return value[0].toUpperCase();
+  return value?.toUpperCase() ?? "";
+})();
+
   const [data, setData] = useState<ReinforcementItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const savedData = localStorage.getItem("reinforcementData");
-    const parsed = savedData ? JSON.parse(savedData) : [];
-    setData([...parsed, ...initialData]);
-  }, []);
+    const fetchData = async () => {
+      if (!state) return;
+
+      const { data, error } = await supabase
+        .from("reinforcement_request")
+        .select("*")
+        .eq("state", state);
+
+      if (!error && data) setData(data as ReinforcementItem[]);
+      setLoading(false);
+    };
+    fetchData();
+  }, [state]);
 
   const filteredData = data.filter((item) => {
     const term = searchTerm.toLowerCase();
@@ -48,10 +57,11 @@ export default function ReinforcementPage() {
   const overdueCount = data.filter(x => x.status === "OVERDUE").length;
 
   return (
-    <div className="relative min-h-screen bg-gray-50 p-6 pb-24">
-      <h1 className="text-2xl font-bold text-center mb-4 text-black">Reinforcement</h1>
+    <div className="relative min-h-screen bg-[#FFFDF7] p-6 pb-24">
+      <h1 className="text-2xl font-bold text-center mb-4 text-black">
+        Reinforcement – {state}
+      </h1>
 
-      {/* Search */}
       <div className="mb-6 text-gray-700 flex justify-center">
         <input
           type="text"
@@ -63,18 +73,20 @@ export default function ReinforcementPage() {
       </div>
 
       <main>
-        {filteredData.length > 0 ? (
+        {loading ? (
+          <p className="text-center text-gray-500 mt-10">Loading...</p>
+        ) : filteredData.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {filteredData.map((item, index) => (
               <PaymentCard
                 key={index}
                 project={item.project}
                 contractor={item.contractor}
-                amount={item.tons} // showing tons instead of money
-                category={item.category}
-                status={item.status} // PENDING / OVERDUE / DELIVERED
+                amount={item.tons}
+                category={item.category as "BUILDING" | "INFRASTRUCTURE" | "PILING"}
+                status={item.status}
                 dateRequested={item.dateRequested}
-                unit="Tons" // optional: pass unit to PaymentCard for display
+                unit="Tons"
               />
             ))}
           </div>
@@ -83,16 +95,10 @@ export default function ReinforcementPage() {
         )}
       </main>
 
-      {/* Summary */}
       <div className="fixed bottom-24 right-6 bg-gray-200 text-gray-800 p-3 rounded-lg shadow-lg text-sm">
         <p><strong>Pending:</strong> {pendingCount}</p>
         <p><strong>Overdue:</strong> {overdueCount}</p>
       </div>
-
-      {/* Footer */}
-      <footer className="fixed bottom-0 left-0 w-full bg-gray-200 p-4 text-center text-gray-700 text-sm shadow-inner z-50">
-        © Vision by <a href="https://wa.me/2348140730579" className="hover:text-black">C.Boaz🌴</a>
-      </footer>
     </div>
   );
 }

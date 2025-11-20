@@ -4,13 +4,13 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useParams } from "next/navigation";
 
-export default function MilestoneRequestPage() {
+export default function ReinforcementRequestPage() {
   const params = useParams() as { name: string; state: string };
 
-  const [form, setForm] = useState({
+  const [formData, setFormData] = useState({
     project: "",
-    milestone: "",
-    amount: "",
+    contractor: "",
+    tons: "",
     category: "",
     dateRequested: "",
   });
@@ -20,45 +20,59 @@ export default function MilestoneRequestPage() {
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => setForm({ ...form, [e.target.name]: e.target.value });
+  ) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
-    const { project, milestone, amount, category, dateRequested } = form;
+    const { project, contractor, tons, category, dateRequested } = formData;
 
-    const { error } = await supabase.from("milestone_request").insert([
+    const { error } = await supabase.from("reinforcement_request").insert([
       {
         project,
-        contractor: params.name,
-        state: params.state,
-        milestone,
-        amount: Number(amount),
+        contractor,
+        tons: Number(tons),
         category,
         dateRequested,
+        state: params.state.toUpperCase(),
         status: "PENDING",
       },
     ]);
 
-    if (error) setMessage("❌ Error: " + error.message);
-    else {
-      setMessage("✅ Milestone request submitted!");
-      setForm({ project: "", milestone: "", amount: "", category: "", dateRequested: "" });
+    if (error) {
+      setMessage("❌ Upload failed: " + error.message);
+    } else {
+      setMessage("✅ Reinforcement request submitted!");
+      setFormData({
+        project: "",
+        contractor: "",
+        tons: "",
+        category: "",
+        dateRequested: "",
+      });
     }
 
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50 flex flex-col">
-      <h1 className="text-3xl font-bold mb-6 text-black text-center">Milestone Request</h1>
+    <div className="w-full min-h-screen p-6 bg-gray-100 flex flex-col">
+      <h1 className="text-2xl font-bold mb-4 text-black">
+        Reinforcement Request – {params.name.toUpperCase()} ({params.state.toUpperCase()})
+      </h1>
 
-      <form className="max-w-lg mx-auto grid gap-4 text-black" onSubmit={handleSubmit}>
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-6 rounded-xl shadow-md grid gap-4 max-w-xl text-black"
+      >
         <input
+          type="text"
           name="project"
-          value={form.project}
+          value={formData.project}
           onChange={handleChange}
           placeholder="Project"
           className="p-3 border rounded-lg text-black"
@@ -66,27 +80,28 @@ export default function MilestoneRequestPage() {
         />
 
         <input
-          name="milestone"
-          value={form.milestone}
+          type="text"
+          name="contractor"
+          value={formData.contractor}
           onChange={handleChange}
-          placeholder="Milestone Name"
+          placeholder="Contractor"
           className="p-3 border rounded-lg text-black"
           required
         />
 
         <input
           type="number"
-          name="amount"
-          value={form.amount}
+          name="tons"
+          value={formData.tons}
           onChange={handleChange}
-          placeholder="Amount (₦)"
+          placeholder="Quantity (Tons)"
           className="p-3 border rounded-lg text-black"
           required
         />
 
         <select
           name="category"
-          value={form.category}
+          value={formData.category}
           onChange={handleChange}
           className="p-3 border rounded-lg text-black"
           required
@@ -100,7 +115,7 @@ export default function MilestoneRequestPage() {
         <input
           type="date"
           name="dateRequested"
-          value={form.dateRequested}
+          value={formData.dateRequested}
           onChange={handleChange}
           className="p-3 border rounded-lg text-black"
           required
@@ -115,12 +130,14 @@ export default function MilestoneRequestPage() {
         </button>
       </form>
 
-      {message && <p className="mt-4 text-lg font-semibold text-black text-center">{message}</p>}
+      {message && <p className="mt-4 text-lg font-semibold text-black">{message}</p>}
 
-      {/* Footer */}
+      {/* FOOTER */}
       <footer className="w-full mt-auto bg-[#FFFDF7] p-1 text-center text-sm text-black">
         © Vision by{" "}
-        <a href="https://wa.me/2348140730579" className="hover:text-black">Iroko🌴</a>
+        <a href="https://wa.me/2348140730579" className="hover:text-black">
+          Iroko🌴
+        </a>
       </footer>
     </div>
   );

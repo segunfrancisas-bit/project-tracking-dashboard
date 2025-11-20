@@ -26,15 +26,15 @@ export default function ProjectsHomePage() {
       </div>
 
       {/* FOOTER */}
-      <footer className="bg-gray-200 text-center py-3 text-black text-sm">
-        © Vision by{" "}
+      <footer className="bg-[#FDFBF5] text-center py-4 text-black text-sm">
+        © 2025 Vision by{" "}
         <a
           href="https://wa.me/2348140730579"
           target="_blank"
           rel="noopener noreferrer"
           className="font-semibold text-black hover:text-gray-700 no-underline"
         >
-          C.Boaz🌴
+          Iroko🌴
         </a>
       </footer>
     </div>

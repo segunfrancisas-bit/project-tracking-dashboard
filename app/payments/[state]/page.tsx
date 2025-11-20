@@ -10,7 +10,7 @@ export default function CategoryPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-[#FFFDF7]">
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center p-6">
@@ -32,15 +32,15 @@ export default function CategoryPage() {
       </main>
 
       {/* Footer (sticky at bottom correctly) */}
-      <footer className="bg-gray-200 shadow-inner p-4 text-center text-sm text-gray-700">
-        © Vision by{" "}
+      <footer className="bg-[#FFFDF7] p-4 text-center text-sm text-gray-700">
+        © 2025 Vision by{" "}
         <a
           href="https://wa.me/2348140730579"
           target="_blank"
           className="hover:text-black transition"
           style={{ textDecoration: "none" }}
         >
-          C.Boaz🌴
+          Iroko🌴
         </a>
       </footer>
     </div>
