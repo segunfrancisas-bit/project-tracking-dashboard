@@ -1,13 +1,13 @@
 import { supabase } from "./supabaseClient";
 
-export async function getMilestoneRequest() {
+export async function getCementRequest() {
   const { data, error } = await supabase
-    .from("milestone_request")
+    .from("cement_request")
     .select("*")
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Error fetching milestone request:", error.message);
+    console.error("Error fetching cement requests:", error.message);
     return [];
   }
 

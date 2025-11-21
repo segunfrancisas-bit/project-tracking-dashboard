@@ -15,7 +15,7 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./app/*"]        // <-- Updated to point inside app/
+      "@/*": ["./*"]
     },
     "plugins": [
       {

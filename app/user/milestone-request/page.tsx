@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import PaymentCard from "@/components/PaymentCard";
+import PaymentCard from "../../components/PaymentCard";
 
 export default function UserMilestoneRequest() {
   const [items, setItems] = useState<any[]>([]);

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import PaymentCard, { Status } from "@/components/PaymentCard";
+import PaymentCard, { Status } from "@/app/components/PaymentCard";
 
 interface ReinforcementItem {
   project: string;

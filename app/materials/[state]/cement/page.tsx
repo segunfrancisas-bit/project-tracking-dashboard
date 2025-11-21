@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import PaymentCard, { Status } from "@/components/PaymentCard";
+import PaymentCard, { Status } from "@/app/components/PaymentCard";
 
 interface CementItem {
   project: string;
   contractor: string;
-  bags: number;
+  quantity: number;
   category: string;
   status: Status;
   dateRequested: string;
@@ -46,7 +46,7 @@ const state = Array.isArray(stateParam)
       item.project.toLowerCase().includes(term) ||
       item.contractor.toLowerCase().includes(term) ||
       item.status.toLowerCase().includes(term) ||
-      item.bags.toString().includes(term) ||
+      item.quantity.toString().includes(term) ||
       item.dateRequested.toLowerCase().includes(term)
     );
   });
@@ -80,7 +80,7 @@ const state = Array.isArray(stateParam)
                 key={index}
                 project={item.project}
                 contractor={item.contractor}
-                amount={item.bags}
+                amount={item.quantity}
                 category={item.category as "BUILDING" | "INFRASTRUCTURE" | "PILING"}
                 status={item.status}
                 dateRequested={item.dateRequested}

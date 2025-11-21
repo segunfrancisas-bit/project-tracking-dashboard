@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import PaymentCard from "@/components/PaymentCard";
+import PaymentCard from "../../components/PaymentCard";
 
 export default function UserCementRequest() {
   const [items, setItems] = useState<any[]>([]);
@@ -36,7 +36,7 @@ export default function UserCementRequest() {
             contractor={item.contractor}
             category={item.category}
             amount={item.quantity}
-            unit="Bags"
+            unit="quantity"
             status={item.status}
             dateRequested={item.dateRequested}
           />

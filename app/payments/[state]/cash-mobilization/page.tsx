@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation"; // <-- safe params hook
 import { supabase } from "@/lib/supabaseClient";
-import PaymentCard, { Status } from "@/components/PaymentCard";
+import PaymentCard, { Status } from "@/app/components/PaymentCard";
 
 interface CashMobilizationItem {
   project: string;
@@ -28,9 +28,9 @@ export default function CashMobilizationPage() {
       if (!state) return;
 
       const { data, error } = await supabase
-        .from("cash_mobilization")
-        .select("*")
-        .eq("state", state);
+  .from("cash_mobilization")
+  .select("*")
+  .ilike("state", state);  // <-- FIX: case-insensitive
 
       if (!error && data) setData(data as CashMobilizationItem[]);
       setLoading(false);
@@ -39,15 +39,15 @@ export default function CashMobilizationPage() {
   }, [state]);
 
   const filteredData = data.filter((item) => {
-    const term = searchTerm.toLowerCase();
-    return (
-      item.project.toLowerCase().includes(term) ||
-      item.contractor.toLowerCase().includes(term) ||
-      item.status.toLowerCase().includes(term) ||
-      item.amount.toString().includes(term) ||
-      item.dateRequested.toLowerCase().includes(term)
-    );
-  });
+  const term = searchTerm.toLowerCase();
+  return (
+    item.project?.toLowerCase().includes(term) ||
+    item.contractor?.toLowerCase().includes(term) ||
+    (item.status ?? "").toLowerCase().includes(term) ||
+    item.amount?.toString().includes(term) ||
+    item.dateRequested?.toLowerCase().includes(term)
+  );
+});
 
   return (
     <div className="relative min-h-screen bg-[#FFFDF7] p-6 pb-24">

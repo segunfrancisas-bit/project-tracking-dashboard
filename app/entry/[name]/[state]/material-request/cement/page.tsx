@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useParams } from "next/navigation";
@@ -10,7 +9,7 @@ export default function CementRequestPage() {
   const [formData, setFormData] = useState({
     project: "",
     contractor: "",
-    quantity: "",
+    bags: "",
     category: "",
     dateRequested: "",
   });
@@ -29,14 +28,14 @@ export default function CementRequestPage() {
     setLoading(true);
     setMessage("");
 
-    const { project, contractor, quantity, category, dateRequested } = formData;
+    const { project, contractor, bags, category, dateRequested } = formData;
 
     const { error } = await supabase.from("cement_request").insert([
       {
         project,
         contractor: params.name,
         state: params.state.toUpperCase(),
-        quantity: Number(quantity),
+        bags: Number(bags),
         category,
         dateRequested,
         status: "PENDING",
@@ -49,7 +48,7 @@ export default function CementRequestPage() {
       setFormData({
         project: "",
         contractor: "",
-        quantity: "",
+        bags: "",
         category: "",
         dateRequested: "",
       });
@@ -59,14 +58,19 @@ export default function CementRequestPage() {
   };
 
   return (
-    <div className="w-full min-h-screen p-6 bg-gray-100 flex flex-col">
-      <h1 className="text-2xl font-bold mb-4 text-black text-center">
-        Cement Request – {params.name.toUpperCase()} ({params.state.toUpperCase()})
+    <div
+      className="min-h-screen flex flex-col items-center justify-start py-8 px-4 animate-gradient-xy"
+      style={{ backgroundSize: "400% 400%" }}
+    >
+      {/* Header */}
+      <h1 className="text-2xl sm:text-3xl md:text-3xl font-semibold mb-8 text-center text-black drop-shadow-lg">
+        Kindly Fill the Cement Request Form
       </h1>
 
+      {/* Form */}
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-xl shadow-md grid gap-4 max-w-xl text-black"
+        className="w-full max-w-md bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-6 sm:p-8 shadow-2xl grid gap-4 transition-transform duration-300 hover:scale-[1.02]"
       >
         <input
           type="text"
@@ -74,7 +78,7 @@ export default function CementRequestPage() {
           value={formData.project}
           onChange={handleChange}
           placeholder="Project"
-          className="p-3 border rounded-lg text-black"
+          className="p-3 rounded-lg bg-white/30 border border-white/40 placeholder-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-black/50 focus:border-black transition"
           required
         />
 
@@ -84,17 +88,17 @@ export default function CementRequestPage() {
           value={formData.contractor}
           onChange={handleChange}
           placeholder="Contractor"
-          className="p-3 border rounded-lg text-black"
+          className="p-3 rounded-lg bg-white/30 border border-white/40 placeholder-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-black/50 focus:border-black transition"
           required
         />
 
         <input
           type="number"
-          name="quantity"
-          value={formData.quantity}
+          name="bags"
+          value={formData.bags}
           onChange={handleChange}
           placeholder="Quantity (Bags)"
-          className="p-3 border rounded-lg text-black"
+          className="p-3 rounded-lg bg-white/30 border border-white/40 placeholder-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-black/50 focus:border-black transition"
           required
         />
 
@@ -102,7 +106,7 @@ export default function CementRequestPage() {
           name="category"
           value={formData.category}
           onChange={handleChange}
-          className="p-3 border rounded-lg text-black"
+          className="p-3 rounded-lg bg-white/30 border border-white/40 text-black placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black/50 focus:border-black transition"
           required
         >
           <option value="">Select Category</option>
@@ -116,26 +120,50 @@ export default function CementRequestPage() {
           name="dateRequested"
           value={formData.dateRequested}
           onChange={handleChange}
-          className="p-3 border rounded-lg text-black"
+          className="p-3 rounded-lg bg-white/30 border border-white/40 text-black focus:outline-none focus:ring-2 focus:ring-black/50 focus:border-black transition"
           required
         />
 
         <button
           type="submit"
           disabled={loading}
-          className="bg-black text-white p-3 rounded-lg hover:bg-gray-800 transition"
+          className="p-3 bg-black text-white font-semibold rounded-xl hover:bg-gray-800 transition shadow-lg"
         >
           {loading ? "Submitting..." : "Submit Request"}
         </button>
       </form>
 
-      {message && <p className="mt-4 text-lg font-semibold text-black text-center">{message}</p>}
+      {/* Message */}
+      {message && (
+        <p className="mt-4 text-center font-medium text-lg text-black drop-shadow-md">
+          {message}
+        </p>
+      )}
 
       {/* Footer */}
-      <footer className="w-full mt-auto bg-[#FFFDF7] p-1 text-center text-sm text-black">
+      <footer className="w-full mt-auto text-center text-sm text-black p-4 backdrop-blur-sm">
         © Vision by{" "}
-        <a href="https://wa.me/2348140730579" className="hover:text-black">Iroko🌴</a>
+        <a
+          href="https://wa.me/2348140730579"
+          target="_blank"
+          className="font-semibold hover:text-black transition"
+        >
+          Iroko🌴
+        </a>
       </footer>
+
+      {/* Background Animation */}
+      <style jsx>{`
+        @keyframes gradient-xy {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-gradient-xy {
+          background: linear-gradient(-45deg, #FFFDF7, #FFF8E7, #FFFCE2, #FFFDF7);
+          animation: gradient-xy 20s ease infinite;
+        }
+      `}</style>
     </div>
   );
 }

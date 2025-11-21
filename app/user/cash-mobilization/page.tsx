@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import PaymentCard from "@/components/PaymentCard";
+import PaymentCard from "../../components/PaymentCard";
 
 export default function UserCashMobilization() {
   const [items, setItems] = useState<any[]>([]);

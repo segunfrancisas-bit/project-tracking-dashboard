@@ -30,12 +30,13 @@ export default function PaymentsPage() {
         </div>
       </main>
 
-      {/* Footer (sticks to bottom, does NOT follow scroll) */}
+      {/* Footer */}
       <footer className="bg-[#FFFDF7] p-4 text-center text-sm text-gray-700">
         © 2025 Vision by{" "}
         <a
           href="https://wa.me/2348140730579"
           target="_blank"
+          rel="noopener noreferrer"
           className="hover:text-black transition"
           style={{ textDecoration: "none" }}
         >
