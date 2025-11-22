@@ -54,7 +54,7 @@ export default function HomePage() {
       {entering && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-black animate-vision-reveal tracking-tight">
-            VISION
+            VISiON🌴
           </h1>
         </div>
       )}
