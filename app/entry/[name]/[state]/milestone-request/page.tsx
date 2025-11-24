@@ -57,7 +57,7 @@ export default function MilestoneRequestPage() {
     >
       {/* Header */}
       <h1 className="text-2xl sm:text-3xl md:text-3xl font-semibold mb-8 text-center text-black drop-shadow-lg">
-        Kindly Fill the Milestone Request Form
+        Milestone Request Form
       </h1>
 
       {/* Form */}

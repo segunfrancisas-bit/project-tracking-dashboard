@@ -1,7 +1,8 @@
 "use client";
+
 import { useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
 import { useParams } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function ReinforcementRequestPage() {
   const params = useParams() as { name: string; state: string };
@@ -9,17 +10,20 @@ export default function ReinforcementRequestPage() {
   const [formData, setFormData] = useState({
     project: "",
     contractor: "",
-    tons: "",
     category: "",
     dateRequested: "",
+    y10: "",
+    y12: "",
+    y16: "",
+    y20: "",
+    y25: "",
+    y32: "",
   });
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -28,19 +32,24 @@ export default function ReinforcementRequestPage() {
     setLoading(true);
     setMessage("");
 
-    const { project, contractor, tons, category, dateRequested } = formData;
+    const { project, contractor, category, dateRequested, y10, y12, y16, y20, y25, y32 } = formData;
 
-    const { error } = await supabase.from("reinforcement_request").insert([
-      {
-        project,
-        contractor,
-        tons: Number(tons),
-        category,
-        dateRequested,
-        state: params.state.toUpperCase(),
-        status: "PENDING",
-      },
-    ]);
+    const data = {
+      project,
+      contractor,
+      category,
+      dateRequested,
+      state: params.state.toUpperCase(),
+      status: "PENDING",
+      y10: parseFloat(y10) || 0,
+      y12: parseFloat(y12) || 0,
+      y16: parseFloat(y16) || 0,
+      y20: parseFloat(y20) || 0,
+      y25: parseFloat(y25) || 0,
+      y32: parseFloat(y32) || 0,
+    };
+
+    const { error } = await supabase.from("reinforcement_request").insert([data]);
 
     if (error) setMessage("❌ Upload failed: " + error.message);
     else {
@@ -48,9 +57,14 @@ export default function ReinforcementRequestPage() {
       setFormData({
         project: "",
         contractor: "",
-        tons: "",
         category: "",
         dateRequested: "",
+        y10: "",
+        y12: "",
+        y16: "",
+        y20: "",
+        y25: "",
+        y32: "",
       });
     }
 
@@ -58,19 +72,14 @@ export default function ReinforcementRequestPage() {
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-start py-8 px-4 animate-gradient-xy"
-      style={{ backgroundSize: "400% 400%" }}
-    >
-      {/* Header */}
-      <h1 className="text-2xl sm:text-3xl font-semibold mb-8 text-center text-black drop-shadow-lg">
-        Kindly Fill the Reinforcement Request Form
+    <div className="min-h-screen flex flex-col items-center justify-start py-10 px-4 animate-gradient-xy space-y-10" style={{ backgroundSize: "400% 400%" }}>
+      <h1 className="text-2xl sm:text-3xl font-semibold text-center text-black drop-shadow-lg">
+        Reinforcement Request Form
       </h1>
 
-      {/* Form */}
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-6 sm:p-8 shadow-2xl grid gap-4 transition-transform duration-300 hover:scale-[1.02]"
+        className="w-full max-w-md bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-8 shadow-2xl flex flex-col space-y-6 transition-transform duration-300 hover:scale-[1.02]"
       >
         <input
           type="text"
@@ -78,7 +87,7 @@ export default function ReinforcementRequestPage() {
           value={formData.project}
           onChange={handleChange}
           placeholder="Project"
-          className="p-3 rounded-lg bg-white/30 border border-white/40 placeholder-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-black/50 focus:border-black transition"
+          className="p-4 rounded-lg bg-white/30 border border-white/40 placeholder-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-black/50 focus:border-black transition"
           required
         />
 
@@ -88,17 +97,7 @@ export default function ReinforcementRequestPage() {
           value={formData.contractor}
           onChange={handleChange}
           placeholder="Contractor"
-          className="p-3 rounded-lg bg-white/30 border border-white/40 placeholder-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-black/50 focus:border-black transition"
-          required
-        />
-
-        <input
-          type="number"
-          name="tons"
-          value={formData.tons}
-          onChange={handleChange}
-          placeholder="Quantity (Tons)"
-          className="p-3 rounded-lg bg-white/30 border border-white/40 placeholder-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-black/50 focus:border-black transition"
+          className="p-4 rounded-lg bg-white/30 border border-white/40 placeholder-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-black/50 focus:border-black transition"
           required
         />
 
@@ -106,7 +105,7 @@ export default function ReinforcementRequestPage() {
           name="category"
           value={formData.category}
           onChange={handleChange}
-          className="p-3 rounded-lg bg-white/30 border border-white/40 text-black placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black/50 focus:border-black transition"
+          className="p-4 rounded-lg bg-white/30 border border-white/40 text-black placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black/50 focus:border-black transition"
           required
         >
           <option value="">Select Category</option>
@@ -120,28 +119,42 @@ export default function ReinforcementRequestPage() {
           name="dateRequested"
           value={formData.dateRequested}
           onChange={handleChange}
-          className="p-3 rounded-lg bg-white/30 border border-white/40 text-black focus:outline-none focus:ring-2 focus:ring-black/50 focus:border-black transition"
+          className="p-4 rounded-lg bg-white/30 border border-white/40 text-black focus:outline-none focus:ring-2 focus:ring-black/50 focus:border-black transition"
           required
         />
+
+        <div className="grid grid-cols-2 gap-4">
+          {["y10","y12","y16","y20","y25","y32"].map((size) => (
+            <input
+              key={size}
+              type="number"
+              name={size}
+              value={formData[size as keyof typeof formData]}
+              onChange={handleChange}
+              step="0.1"
+              min={0}
+              placeholder={size.toUpperCase() + " (Tons)"}
+              className="p-3 rounded-lg bg-white/30 border border-white/40 text-black focus:outline-none focus:ring-2 focus:ring-black/50 focus:border-black transition"
+            />
+          ))}
+        </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="p-3 bg-black text-white font-semibold rounded-xl hover:bg-gray-800 transition shadow-lg"
+          className="p-4 bg-black text-white font-semibold rounded-xl hover:bg-gray-800 transition shadow-lg"
         >
           {loading ? "Submitting..." : "Submit Request"}
         </button>
       </form>
 
-      {/* Message */}
       {message && (
-        <p className="mt-4 text-center font-medium text-lg text-black drop-shadow-md">
+        <p className="text-center font-medium text-lg text-black drop-shadow-md">
           {message}
         </p>
       )}
 
-      {/* Footer */}
-      <footer className="w-full mt-auto text-center text-sm text-black p-4 backdrop-blur-sm">
+      <footer className="w-full text-center text-sm text-black p-4 backdrop-blur-sm">
         © Vision by{" "}
         <a
           href="https://wa.me/2348140730579"
@@ -152,7 +165,6 @@ export default function ReinforcementRequestPage() {
         </a>
       </footer>
 
-      {/* Background Animation */}
       <style jsx>{`
         @keyframes gradient-xy {
           0% { background-position: 0% 50%; }

@@ -64,7 +64,7 @@ export default function CementRequestPage() {
     >
       {/* Header */}
       <h1 className="text-2xl sm:text-3xl md:text-3xl font-semibold mb-8 text-center text-black drop-shadow-lg">
-        Kindly Fill the Cement Request Form
+        Cement Request Form
       </h1>
 
       {/* Form */}

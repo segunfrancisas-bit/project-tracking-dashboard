@@ -8,20 +8,20 @@ import PaymentCard, { Status } from "@/app/components/PaymentCard";
 interface ReinforcementItem {
   project: string;
   contractor: string;
-  tons: number;
-  category: string;
+  y10: number;
+  y12: number;
+  y16: number;
+  y20: number;
+  y25: number;
+  y32: number;
+  category: "BUILDING" | "INFRASTRUCTURE" | "PILING";
   status: Status;
   dateRequested: string;
 }
 
 export default function ReinforcementPage() {
   const params = useParams();
-
-const state = (() => {
-  const value = params?.state;
-  if (Array.isArray(value)) return value[0].toUpperCase();
-  return value?.toUpperCase() ?? "";
-})();
+  const state = Array.isArray(params?.state) ? params.state[0].toUpperCase() : params?.state?.toUpperCase() ?? "";
 
   const [data, setData] = useState<ReinforcementItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,12 +30,10 @@ const state = (() => {
   useEffect(() => {
     const fetchData = async () => {
       if (!state) return;
-
       const { data, error } = await supabase
         .from("reinforcement_request")
         .select("*")
         .eq("state", state);
-
       if (!error && data) setData(data as ReinforcementItem[]);
       setLoading(false);
     };
@@ -44,17 +42,18 @@ const state = (() => {
 
   const filteredData = data.filter((item) => {
     const term = searchTerm.toLowerCase();
+    const totalTons = (item.y10 || 0) + (item.y12 || 0) + (item.y16 || 0) + (item.y20 || 0) + (item.y25 || 0) + (item.y32 || 0);
     return (
       item.project.toLowerCase().includes(term) ||
       item.contractor.toLowerCase().includes(term) ||
       item.status.toLowerCase().includes(term) ||
-      item.tons.toString().includes(term) ||
+      totalTons.toString().includes(term) ||
       item.dateRequested.toLowerCase().includes(term)
     );
   });
 
-  const pendingCount = data.filter(x => x.status === "PENDING").length;
-  const overdueCount = data.filter(x => x.status === "OVERDUE").length;
+  const pendingCount = data.filter((x) => x.status === "PENDING").length;
+  const overdueCount = data.filter((x) => x.status === "OVERDUE").length;
 
   return (
     <div className="relative min-h-screen bg-[#FFFDF7] p-6 pb-24">
@@ -82,11 +81,15 @@ const state = (() => {
                 key={index}
                 project={item.project}
                 contractor={item.contractor}
-                amount={item.tons}
-                category={item.category as "BUILDING" | "INFRASTRUCTURE" | "PILING"}
+                category={item.category}
                 status={item.status}
                 dateRequested={item.dateRequested}
-                unit="Tons"
+                y10={item.y10}
+                y12={item.y12}
+                y16={item.y16}
+                y20={item.y20}
+                y25={item.y25}
+                y32={item.y32}
               />
             ))}
           </div>
