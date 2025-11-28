@@ -11,13 +11,12 @@ export default function StateZonesPage() {
   const params = useParams();
   const stateRaw = params.state as string;
 
-  // Normalize state to lowercase for lookup
   const stateKey = stateRaw.toLowerCase();
   const zones = zonesMap[stateKey] || [];
 
   if (!zones.length) {
     return (
-      <div className="p-6 text-red-600">
+      <div className="p-6 text-red-600 text-center text-lg">
         No zones available for this state.
       </div>
     );
@@ -26,12 +25,23 @@ export default function StateZonesPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#FFFDF7]">
       {/* MAIN CONTENT */}
-      <div className="flex flex-col flex-grow items-center justify-center p-6">
-        <h1 className="text-3xl md:text-4xl font-extrabold mb-10 text-black text-center">
+      <div className="flex flex-col flex-grow items-center justify-center p-4 md:p-6">
+        <h1 className="text-2xl md:text-4xl font-extrabold mb-8 text-black text-center">
           Select a Zone
         </h1>
 
-        <div className="flex gap-6 justify-center">
+        {/* MOBILE-OPTIMIZED BUTTON LAYOUT */}
+        <div className="
+          grid 
+          grid-cols-1 
+          sm:grid-cols-2 
+          md:flex md:flex-row 
+          gap-4 
+          md:gap-6 
+          justify-center 
+          w-full 
+          max-w-md 
+        ">
           {zones.map((zone) => (
             <Link
               key={zone}
@@ -39,15 +49,17 @@ export default function StateZonesPage() {
               className="
                 bg-gray-300
                 rounded-xl
-                w-48 h-48
+                w-full 
+                h-20 
+                md:w-48 md:h-48
                 flex items-center justify-center
                 text-center
                 text-black
-                font-semibold text-lg
+                font-semibold 
+                text-lg 
                 shadow-lg
                 hover:bg-black hover:text-white
                 transition-colors duration-300
-                cursor-pointer
               "
             >
               {zone}
