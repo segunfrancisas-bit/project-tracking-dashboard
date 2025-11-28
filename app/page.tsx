@@ -17,6 +17,8 @@ export default function HomePage() {
       NETENGIN101: "Netengin",
       TABIS101: "Tabis",
       FASTTRACK101: "Fastrack",
+      LAZ1: "LagosForm",
+      ABZ1: "AbujaForm",
     };
 
     const normalUsers: Record<string, string> = {
@@ -39,7 +41,7 @@ export default function HomePage() {
       setEntering(true);
       setTimeout(() => (window.location.href = url), 1800);
     } else {
-      setError("Access Denied");
+      setError("Access Denied, Click on Iroko to Request for Passkey");
     }
   };
 
@@ -50,11 +52,11 @@ export default function HomePage() {
       }`}
       style={{ backgroundSize: "500% 500%" }}
     >
-      {/* VISION reveal smaller + sleeker */}
+      {/* VISION reveal */}
       {entering && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-black animate-vision-reveal tracking-tight">
-            VISiON🌴
+            ViSiON🌴
           </h1>
         </div>
       )}
@@ -87,8 +89,9 @@ export default function HomePage() {
       <footer className="w-full p-4 text-center text-sm text-black/80 bg-transparent drop-shadow-md content-wrapper">
         © 2025 Vision by{" "}
         <a
-          href="https://wa.me/2348140730579"
+          href="https://mail.google.com/mail/?view=cm&fs=1&to=segunfrancisas@gmail.com&su=Request%20for%20Passkey&body=Hello%20Iroko,"
           target="_blank"
+          rel="noopener noreferrer"
           className="hover:text-black transition"
           style={{ textDecoration: "none" }}
         >
@@ -97,13 +100,14 @@ export default function HomePage() {
       </footer>
 
       <style jsx>{`
-        /* STRONG, OBVIOUS GRADIENT with new colors: ORANGE → CREAM → GRAY → YELLOW → GRAY */
+        /* Gradient Background Animation with Mint Green */
         .animate-gradient-xy {
           background: linear-gradient(
             -45deg,
             #ffb27a,
             #ffe9c7,
             #d6d6d6,
+            #d4f7dc, /* mint green added */
             #fff48a,
             #bfbfbf,
             #ffe4b3,

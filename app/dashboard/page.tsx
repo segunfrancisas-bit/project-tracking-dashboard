@@ -28,7 +28,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {[ 
-            { label: "Project Tracking", path: "/projects" },
+            { label: "Project Tracking", path: "/project-tracking" },
             { label: "Payment Tracking", path: "/payments" },
             { label: "Material Request", path: "/materials" },
             { label: "Cost Trend", path: "/cost-trend" },

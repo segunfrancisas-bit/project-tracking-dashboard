@@ -3,23 +3,27 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import PaymentCard, { Status } from "@/app/components/PaymentCard";
+import CementCard from "@/app/components/CementCard";
 
 interface CementItem {
+  id: number;
   project: string;
   contractor: string;
   quantity: number;
   category: string;
   status: Status;
   dateRequested: string;
+
+  delivered?: boolean;         // ← Ensure this exists in DB
+  delivered_date?: string | null;
 }
 
 export default function CementPage() {
   const params = useParams();
   const stateParam = params?.state;
-const state = Array.isArray(stateParam)
-  ? stateParam[0].toUpperCase()
-  : stateParam?.toUpperCase() || "";
+  const state = Array.isArray(stateParam)
+    ? stateParam[0].toUpperCase()
+    : stateParam?.toUpperCase() || "";
 
   const [data, setData] = useState<CementItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,34 +57,36 @@ const state = Array.isArray(stateParam)
 
   const pendingCount = data.filter(x => x.status === "PENDING").length;
   const overdueCount = data.filter(x => x.status === "OVERDUE").length;
+  const deliveredCount = data.filter(x => x.delivered === true).length; // ← Added
 
   return (
-    <div className="relative min-h-screen bg-[#FFFDF7] p-6 pb-24">
-      <h1 className="text-2xl font-bold text-center mb-4 text-black">
-        Cement – {state}
+    <div className="relative min-h-screen bg-[#FFFDF7] p-4 pb-16">
+      <h1 className="text-xl font-semibold text-center mb-4 text-black">
+        CEMENT REQUESTS – {state}
       </h1>
 
-      <div className="mb-6 text-gray-700 flex justify-center">
+      <div className="mb-4 text-gray-700 flex justify-center">
         <input
           type="text"
           placeholder="Search by project, contractor, status, bags, or date..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full max-w-lg p-3 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+          className="w-full max-w-md p-2 text-sm border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
         />
       </div>
 
       <main>
         {loading ? (
-          <p className="text-center text-gray-500 mt-10">Loading...</p>
+          <p className="text-center text-gray-500 mt-6 text-sm">Loading...</p>
         ) : filteredData.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {filteredData.map((item, index) => (
-              <PaymentCard
-                key={index}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {filteredData.map((item) => (
+              <CementCard
+                key={item.id}
+                id={item.id}
                 project={item.project}
                 contractor={item.contractor}
-                amount={item.quantity}
+                quantity={item.quantity}
                 category={item.category as "BUILDING" | "INFRASTRUCTURE" | "PILING"}
                 status={item.status}
                 dateRequested={item.dateRequested}
@@ -89,13 +95,27 @@ const state = Array.isArray(stateParam)
             ))}
           </div>
         ) : (
-          <p className="text-center text-gray-500 mt-10">No results found.</p>
+          <p className="text-center text-gray-500 mt-6 text-sm">No results found.</p>
         )}
       </main>
 
-      <div className="fixed bottom-24 right-6 bg-gray-200 text-gray-800 p-3 rounded-lg shadow-lg text-sm">
-        <p><strong>Pending:</strong> {pendingCount}</p>
-        <p><strong>Overdue:</strong> {overdueCount}</p>
+      {/* Status Overview Box */}
+      <div className="fixed bottom-16 right-4 bg-white text-gray-800 p-2 rounded-lg shadow-sm text-xs">
+        <p className="font-medium mb-1">Status Overview</p>
+        <div className="flex flex-col gap-1">
+          <div className="flex justify-between">
+            <span className="font-medium">Pending:</span>
+            <span>{pendingCount}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="font-medium">Overdue:</span>
+            <span>{overdueCount}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="font-medium">Delivered:</span>
+            <span>{deliveredCount}</span>
+          </div>
+        </div>
       </div>
     </div>
   );

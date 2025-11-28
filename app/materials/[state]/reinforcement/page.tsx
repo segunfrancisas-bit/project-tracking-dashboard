@@ -1,103 +1,155 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import PaymentCard, { Status } from "@/app/components/PaymentCard";
+import ReinforcementCard, { Status } from "@/app/components/ReinforcementCard";
 
 interface ReinforcementItem {
+  id: number;
   project: string;
   contractor: string;
-  tons: number;
-  category: string;
+  category: "BUILDING" | "INFRASTRUCTURE" | "PILING";
   status: Status;
   dateRequested: string;
+  y10?: number;
+  y12?: number;
+  y16?: number;
+  y20?: number;
+  y25?: number;
+  y32?: number;
+
+  sent_to_award?: boolean;
+  sent_to_award_date?: string | null;
+  sent_for_approval?: boolean;
+  sent_for_approval_date?: string | null;
+  approved?: boolean;
+  approved_date?: string | null;
+  sent_to_procurement?: boolean;
+  sent_to_procurement_date?: string | null;
+  delivered?: boolean;
+  delivered_date?: string | null;
 }
 
 export default function ReinforcementPage() {
   const params = useParams();
+  const rawState = params?.state;
+  const state = Array.isArray(rawState) ? rawState[0]?.toUpperCase() : (rawState || "").toUpperCase();
 
-const state = (() => {
-  const value = params?.state;
-  if (Array.isArray(value)) return value[0].toUpperCase();
-  return value?.toUpperCase() ?? "";
-})();
-
-  const [data, setData] = useState<ReinforcementItem[]>([]);
+  const [items, setItems] = useState<ReinforcementItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!state) return;
+  const fetchData = useCallback(async () => {
+    if (!state) return;
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("reinforcement_request")
+      .select(
+        `id,
+        project,
+        contractor,
+        category,
+        status,
+        dateRequested,
+        y10,
+        y12,
+        y16,
+        y20,
+        y25,
+        y32,
+        sent_to_award,
+        sent_to_award_date,
+        sent_for_approval,
+        sent_for_approval_date,
+        approved,
+        approved_date,
+        sent_to_procurement,
+        sent_to_procurement_date,
+        delivered,
+        delivered_date`
+      )
+      .eq("state", state)
+      .order("dateRequested", { ascending: true });
 
-      const { data, error } = await supabase
-        .from("reinforcement_request")
-        .select("*")
-        .eq("state", state);
-
-      if (!error && data) setData(data as ReinforcementItem[]);
-      setLoading(false);
-    };
-    fetchData();
+    if (!error && data) setItems(data as ReinforcementItem[]);
+    setLoading(false);
   }, [state]);
 
-  const filteredData = data.filter((item) => {
-    const term = searchTerm.toLowerCase();
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleCardUpdate = (id: number | string, updated: Partial<ReinforcementItem>) => {
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...updated } : item))
+    );
+  };
+
+  const filtered = items.filter((it) => {
+    const t = search.toLowerCase();
     return (
-      item.project.toLowerCase().includes(term) ||
-      item.contractor.toLowerCase().includes(term) ||
-      item.status.toLowerCase().includes(term) ||
-      item.tons.toString().includes(term) ||
-      item.dateRequested.toLowerCase().includes(term)
+      it.project.toLowerCase().includes(t) ||
+      it.contractor.toLowerCase().includes(t) ||
+      it.status.toLowerCase().includes(t)
     );
   });
 
-  const pendingCount = data.filter(x => x.status === "PENDING").length;
-  const overdueCount = data.filter(x => x.status === "OVERDUE").length;
+  // Calculate the status counts (PENDING, OVERDUE, DELIVERED)
+  const statusCounts = {
+    PENDING: items.filter((item) => item.status === "PENDING").length,
+    OVERDUE: items.filter((item) => item.status === "OVERDUE").length,
+    DELIVERED: items.filter((item) => item.status === "DELIVERED").length,
+  };
 
   return (
-    <div className="relative min-h-screen bg-[#FFFDF7] p-6 pb-24">
-      <h1 className="text-2xl font-bold text-center mb-4 text-black">
-        Reinforcement – {state}
-      </h1>
+    <div className="relative min-h-screen bg-[#FFFDF7] p-4 pb-16">
+      <h1 className="text-xl font-semibold text-center mb-6 text-black">REINFORCEMENT REQUEST – {state}</h1>
 
-      <div className="mb-6 text-gray-700 flex justify-center">
+      <div className="mb-4 flex justify-center">
         <input
-          type="text"
-          placeholder="Search by project, contractor, status, tons, or date..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full max-w-lg p-3 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by project, contractor or status..."
+          className="w-full max-w-md p-2 border rounded-full shadow-sm text-sm"
         />
       </div>
 
       <main>
         {loading ? (
-          <p className="text-center text-gray-500 mt-10">Loading...</p>
-        ) : filteredData.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {filteredData.map((item, index) => (
-              <PaymentCard
-                key={index}
-                project={item.project}
-                contractor={item.contractor}
-                amount={item.tons}
-                category={item.category as "BUILDING" | "INFRASTRUCTURE" | "PILING"}
-                status={item.status}
-                dateRequested={item.dateRequested}
-                unit="Tons"
+          <p className="text-center text-gray-500 mt-6 text-sm">Loading...</p>
+        ) : filtered.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filtered.map((item) => (
+              <ReinforcementCard
+                key={item.id}
+                {...item}
+                onUpdate={(updated) => handleCardUpdate(item.id, updated)}
               />
             ))}
           </div>
         ) : (
-          <p className="text-center text-gray-500 mt-10">No results found.</p>
+          <p className="text-center text-gray-500 mt-6 text-sm">No results found.</p>
         )}
       </main>
 
-      <div className="fixed bottom-24 right-6 bg-gray-200 text-gray-800 p-3 rounded-lg shadow-lg text-sm">
-        <p><strong>Pending:</strong> {pendingCount}</p>
-        <p><strong>Overdue:</strong> {overdueCount}</p>
+      {/* Overview Box at the Bottom Right */}
+      <div className="fixed bottom-4 right-4 p-3 bg-white shadow-sm rounded-lg border border-gray-300 text-sm">
+        <h4 className="text-sm font-semibold text-gray-800 mb-2">Status Overview</h4>
+        <div className="flex flex-col gap-2 text-xs text-gray-700">
+          <div className="flex justify-between">
+            <div className="font-medium">PENDING:</div>
+            <div>{statusCounts.PENDING}</div>
+          </div>
+          <div className="flex justify-between">
+            <div className="font-medium">OVERDUE:</div>
+            <div>{statusCounts.OVERDUE}</div>
+          </div>
+          <div className="flex justify-between">
+            <div className="font-medium">DELIVERED:</div>
+            <div>{statusCounts.DELIVERED}</div>
+          </div>
+        </div>
       </div>
     </div>
   );

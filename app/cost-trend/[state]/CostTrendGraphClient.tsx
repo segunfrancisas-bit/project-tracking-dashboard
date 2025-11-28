@@ -66,10 +66,10 @@ export default function CostTrendGraphClient({ state }: Props) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-200 p-6">
+    <div className="min-h-screen flex flex-col bg-gray-200 text-black p-6">
       {/* Header */}
-      <h1 className="text-4xl font-extrabold text-center mb-6 text-gray-700">
-        Cost Trend - {state.toUpperCase()}
+      <h1 className="text-4xl font-bold text-center mb-6 text-black">
+        COST TREND - {state.toUpperCase()}
       </h1>
 
       {/* Week Toggles */}
