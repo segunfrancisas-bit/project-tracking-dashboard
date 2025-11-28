@@ -24,6 +24,11 @@ export default function ProjectCard({ id }: ProjectProps) {
 
   const reinforcementCols = ["y10", "y12", "y16", "y20", "y25", "y32"];
 
+  /** ⭐ These MUST be persisted */
+  const [cementGiven, setCementGiven] = useState<number>(0);
+  const [rebarGiven, setRebarGiven] = useState<Record<string, number>>({});
+
+  /** LOAD PROJECT + GIVEN TOTALS */
   useEffect(() => {
     const fetchProject = async () => {
       setLoading(true);
@@ -38,12 +43,20 @@ export default function ProjectCard({ id }: ProjectProps) {
         setProject(data);
         setAmountPaidFront(Number(data.amount_paid || 0));
         setValueOfWorkDoneFront(Number(data.value_of_work_done || 0));
+
         setCementFront(Number(data.cement || 0));
+
+        /** ⭐ Load persisted cement_given */
+        setCementGiven(Number(data.cement_given || 0));
+
+        /** ⭐ Load persisted reinforcement_given */
+        setRebarGiven(data.reinforcement_given || {});
 
         const reinf: Record<string, number> = {};
         reinforcementCols.forEach((col) => {
           if (Number(data[col] || 0) > 0) reinf[col] = Number(data[col]);
         });
+
         setReinforcementFront(reinf);
 
         const reinfInput: Record<string, string> = {};
@@ -60,8 +73,10 @@ export default function ProjectCard({ id }: ProjectProps) {
     fetchProject();
   }, [id]);
 
+
   if (loading) return <div className="p-4 bg-white rounded-lg shadow text-center text-sm">Loading...</div>;
   if (!project) return <div className="p-4 bg-white rounded-lg shadow text-center text-sm">Project not found</div>;
+
 
   const totalTarget = project.milestones?.filter((m: any) => m.target).length || 0;
   const totalAchieved = project.milestones?.filter((m: any) => m.achieved).length || 0;
@@ -70,22 +85,18 @@ export default function ProjectCard({ id }: ProjectProps) {
 
   const mostRecentTarget = project.milestones
     ?.filter((m: any) => m.target)
-    .sort(
-      (a: any, b: any) =>
-        new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime()
-    )[0]?.name || "";
+    .sort((a: any, b: any) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime())[0]?.name || "";
 
   const mostRecentAchieved = project.milestones
     ?.filter((m: any) => m.achieved)
-    .sort(
-      (a: any, b: any) =>
-        new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime()
-    )[0]?.name || "";
+    .sort((a: any, b: any) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime())[0]?.name || "";
+
 
   const percent = (value: number) => {
     const raw = (value / project.milestones.length) * 100;
     return raw > 100 ? 100 : raw % 1 === 0 ? raw.toFixed(0) : raw.toFixed(1);
   };
+
 
   const ProgressBar = ({ value, color }: { value: number; color: string }) => {
     const p = percent(value);
@@ -99,50 +110,93 @@ export default function ProjectCard({ id }: ProjectProps) {
     );
   };
 
+  /** -------------------------------
+   *  PERMANENT CEMENT SAVE
+   * ------------------------------- */
+  const handleRunCementDeduction = async () => {
+    const val = Number(inputCement || 0);
+
+    if (val > cementFront) {
+      alert("Not enough cement available!");
+      return;
+    }
+
+    const newCementLeft = cementFront - val;
+    const newCementGiven = cementGiven + val;
+
+    setCementFront(newCementLeft);
+    setCementGiven(newCementGiven);
+
+    setInputCement("");
+
+    await supabase
+      .from("projects")
+      .update({
+        cement: newCementLeft,
+        cement_given: newCementGiven,
+      })
+      .eq("id", id);
+  };
+
+  /** -------------------------------
+   *  PERMANENT REBAR SAVE + 2 DECIMAL LIMIT
+   * ------------------------------- */
+  const handleRunReinforcementDeduction = async (type: string) => {
+    let val = Number(inputReinforcement[type] || 0);
+
+    /** ⭐ FORCE 2 decimals */
+    val = Number(val.toFixed(2));
+
+    if (val > reinforcementFront[type]) {
+      alert("Not enough reinforcement available!");
+      return;
+    }
+
+    const newRemaining = Number((reinforcementFront[type] - val).toFixed(2));
+
+    const updatedGiven = {
+      ...rebarGiven,
+      [type]: Number(((rebarGiven[type] || 0) + val).toFixed(2)),
+    };
+
+    setReinforcementFront({ ...reinforcementFront, [type]: newRemaining });
+    setRebarGiven(updatedGiven);
+
+    setInputReinforcement({ ...inputReinforcement, [type]: "" });
+
+    await supabase
+      .from("projects")
+      .update({
+        [type]: newRemaining,
+        reinforcement_given: updatedGiven,
+      })
+      .eq("id", id);
+  };
+
+  /** Minimal unchanged handlers */
   const handleRunAmountPaid = async () => {
     const amt = Number(inputAmountPaid || 0);
-    if (amountPaidFront + amt > contractSum) { alert("Contract sum exceeded!"); return; }
-    const newAmountPaid = amountPaidFront + amt;
-    setAmountPaidFront(newAmountPaid);
+    if (amountPaidFront + amt > contractSum) { alert("Contract sum exceeded"); return; }
+    const newValue = amountPaidFront + amt;
+    setAmountPaidFront(newValue);
     setInputAmountPaid("");
-    await supabase.from("projects").update({ amount_paid: newAmountPaid }).eq("id", id);
+    await supabase.from("projects").update({ amount_paid: newValue }).eq("id", id);
   };
 
   const handleRunValueOfWorkDone = async () => {
     const val = Number(inputValueOfWorkDone || 0);
-    if (valueOfWorkDoneFront + val > contractSum) { alert("Contract sum exceeded!"); return; }
+    if (valueOfWorkDoneFront + val > contractSum) { alert("Contract sum exceeded"); return; }
     const newValue = valueOfWorkDoneFront + val;
     setValueOfWorkDoneFront(newValue);
     setInputValueOfWorkDone("");
     await supabase.from("projects").update({ value_of_work_done: newValue }).eq("id", id);
   };
 
-  const handleRunCementDeduction = async () => {
-    const val = Number(inputCement || 0);
-    if (val > cementFront) { alert("Not enough cement available for deduction!"); return; }
-    const newCement = cementFront - val;
-    setCementFront(newCement);
-    setInputCement("");
-    await supabase.from("projects").update({ cement: newCement }).eq("id", id);
-  };
-
-  const handleRunReinforcementDeduction = async (type: string) => {
-    const val = Number(inputReinforcement[type] || 0);
-    if (val > reinforcementFront[type]) { alert("Not enough reinforcement available for deduction!"); return; }
-    const newValue = reinforcementFront[type] - val;
-    setReinforcementFront({ ...reinforcementFront, [type]: newValue });
-    setInputReinforcement({ ...inputReinforcement, [type]: "" });
-    await supabase.from("projects").update({ [type]: newValue }).eq("id", id);
-  };
-
   const handleToggleMilestone = async (index: number, field: "target" | "achieved") => {
     const updated = [...project.milestones];
-
     updated[index][field] = !updated[index][field];
 
-    if ((field === "target" && updated[index].target) || (field === "achieved" && updated[index].achieved)) {
-      updated[index].timestamp = new Date().toISOString();
-    }
+    if (updated[index][field]) updated[index].timestamp = new Date().toISOString();
 
     setProject({ ...project, milestones: updated });
     await supabase.from("projects").update({ milestones: updated }).eq("id", id);
@@ -150,16 +204,9 @@ export default function ProjectCard({ id }: ProjectProps) {
 
   let tagText = "";
   let tagColor = "";
-  if (valueOfWorkDoneFront < amountPaidFront) {
-    tagText = "Exposed";
-    tagColor = "bg-red-500";
-  } else if (valueOfWorkDoneFront > amountPaidFront) {
-    tagText = "Not Exposed";
-    tagColor = "bg-green-500";
-  } else {
-    tagText = "Balanced";
-    tagColor = "bg-gray-500";
-  }
+  if (valueOfWorkDoneFront < amountPaidFront) { tagText = "Exposed"; tagColor = "bg-red-500"; }
+  else if (valueOfWorkDoneFront > amountPaidFront) { tagText = "Not Exposed"; tagColor = "bg-green-500"; }
+  else { tagText = "Balanced"; tagColor = "bg-gray-500"; }
 
   return (
     <div
@@ -170,12 +217,11 @@ export default function ProjectCard({ id }: ProjectProps) {
       {/* FRONT */}
       <div
         className="absolute inset-0 p-4 flex flex-col justify-between rounded-xl text-white"
-        style={{ backfaceVisibility: "hidden", background: "radial-gradient(circle at top right, #C0C0C0 15%, #000000 85%)" }}
+        style={{ backfaceVisibility: "hidden", background: "radial-gradient(circle at top right, #555555 5%, #000000 95%)" }}
       >
         <div>
           <h2 className="text-xl font-extrabold mb-1">{project.project_name}</h2>
           <p className="text-[12px] font-medium">{project.contractor}</p>
-          {/* DECODE ZONE HERE */}
           <p className="text-[11px]">{decodeURIComponent(project.zone)} / {project.site}</p>
           <p className="text-[11px] mb-2">{project.category}</p>
 
@@ -193,13 +239,12 @@ export default function ProjectCard({ id }: ProjectProps) {
               <span>Rebar:</span>
               {Object.entries(reinforcementFront).map(([type, qty]) => (
                 <span key={type} className="bg-white/20 px-2 py-1 rounded text-[10px]">
-                  {type.toUpperCase()}: {qty}
+                  {type.toUpperCase()}: {qty.toFixed(2)}
                 </span>
               ))}
             </div>
           </div>
 
-          {/* Glass-like Tag */}
           <div
             className={`absolute top-2 right-2 px-2 py-0.5 text-sm rounded-md font-semibold ${tagColor} bg-opacity-80 backdrop-blur-sm border border-white/20`}
           >
@@ -262,7 +307,7 @@ export default function ProjectCard({ id }: ProjectProps) {
         )}
 
         <div className="mb-3 space-y-1 text-[11px]">
-          {project.milestones?.map((m: any, index) => (
+          {project.milestones?.map((m: any, index: number) => (
             <div key={index} className="flex items-center gap-2">
               <div className="w-[90px] bg-white/20 text-white rounded px-1 py-0.5 drop-shadow truncate text-[10px]">
                 {m.name}
@@ -354,6 +399,21 @@ export default function ProjectCard({ id }: ProjectProps) {
                   Run
                 </button>
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ⭐ PERSISTED DISPLAY */}
+        <div className="mt-4 p-2 bg-black/20 rounded text-[11px]">
+          <p className="font-bold">TOTAL GIVEN OUT</p>
+
+          <p>Cement Given: {cementGiven} bags</p>
+
+          <div className="flex gap-2 flex-wrap mt-1">
+            {Object.entries(rebarGiven).map(([t, q]) => (
+              <span key={t} className="px-2 py-1 bg-white/20 rounded">
+                {t.toUpperCase()}: {q.toFixed(2)}
+              </span>
             ))}
           </div>
         </div>

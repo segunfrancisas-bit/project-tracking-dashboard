@@ -56,6 +56,7 @@ export default function ZoneProjectsPage() {
     return "balanced";
   };
 
+  // Filtered data including status search
   const filteredData = data.filter((item) => {
     const term = searchTerm.toLowerCase();
 
@@ -67,19 +68,14 @@ export default function ZoneProjectsPage() {
       item.zone.toLowerCase().includes(term) ||
       item.state.toLowerCase().includes(term) ||
       item.contract_sum.toString().includes(term) ||
-      getStatus(item).includes(term)
+      getStatus(item).toLowerCase().includes(term)
     );
   });
 
   return (
     <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-[#fdfcfb] to-[#f5f5f5] overflow-x-hidden">
-      
-      {/* Floating VISION logo */}
-      <div className="absolute top-6 right-6 text-black font-extrabold text-2xl opacity-20 animate-float">
-        VISION
-      </div>
 
-      <div className="flex flex-col items-center flex-grow p-6">
+      <div className="flex flex-col items-center flex-grow p-4 md:p-6 w-full">
         {/* Centered Header */}
         <h1 className="text-2xl md:text-3xl font-semibold text-black mb-6 text-center tracking-wide">
           Project Overview
@@ -97,11 +93,11 @@ export default function ZoneProjectsPage() {
         </div>
 
         {/* Projects Grid */}
-        <main className="w-full flex-1">
+        <main className="w-full flex-1 overflow-x-hidden">
           {loading ? (
             <p className="text-center text-gray-500 mt-12 text-sm">Loading...</p>
           ) : filteredData.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 justify-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 justify-center">
               {filteredData.map((item) => (
                 <div
                   key={item.id}
@@ -141,16 +137,6 @@ export default function ZoneProjectsPage() {
           Iroko🌴
         </a>
       </footer>
-
-      <style jsx>{`
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); opacity: 0.2; }
-          50% { transform: translateY(-10px); opacity: 0.25; }
-        }
-      `}</style>
     </div>
   );
 }
