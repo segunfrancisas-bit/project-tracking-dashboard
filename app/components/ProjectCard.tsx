@@ -24,59 +24,49 @@ export default function ProjectCard({ id }: ProjectProps) {
 
   const reinforcementCols = ["y10", "y12", "y16", "y20", "y25", "y32"];
 
-  /** ⭐ These MUST be persisted */
   const [cementGiven, setCementGiven] = useState<number>(0);
   const [rebarGiven, setRebarGiven] = useState<Record<string, number>>({});
 
-  /** LOAD PROJECT + GIVEN TOTALS */
+  /** LOAD PROJECT */
   useEffect(() => {
     const fetchProject = async () => {
       setLoading(true);
+
       const { data, error } = await supabase
         .from("projects")
         .select("*")
         .eq("id", id)
         .single();
 
-      if (error) console.error("Error fetching project:", error);
-      else {
+      if (!error && data) {
         setProject(data);
+
         setAmountPaidFront(Number(data.amount_paid || 0));
         setValueOfWorkDoneFront(Number(data.value_of_work_done || 0));
-
         setCementFront(Number(data.cement || 0));
-
-        /** ⭐ Load persisted cement_given */
         setCementGiven(Number(data.cement_given || 0));
 
-        /** ⭐ Load persisted reinforcement_given */
         setRebarGiven(data.reinforcement_given || {});
 
         const reinf: Record<string, number> = {};
         reinforcementCols.forEach((col) => {
           if (Number(data[col] || 0) > 0) reinf[col] = Number(data[col]);
         });
-
         setReinforcementFront(reinf);
 
         const reinfInput: Record<string, string> = {};
         Object.keys(reinf).forEach((col) => (reinfInput[col] = ""));
         setInputReinforcement(reinfInput);
-
-        setInputAmountPaid("");
-        setInputValueOfWorkDone("");
-        setInputCement("");
       }
+
       setLoading(false);
     };
 
     fetchProject();
   }, [id]);
 
-
   if (loading) return <div className="p-4 bg-white rounded-lg shadow text-center text-sm">Loading...</div>;
   if (!project) return <div className="p-4 bg-white rounded-lg shadow text-center text-sm">Project not found</div>;
-
 
   const totalTarget = project.milestones?.filter((m: any) => m.target).length || 0;
   const totalAchieved = project.milestones?.filter((m: any) => m.achieved).length || 0;
@@ -91,12 +81,10 @@ export default function ProjectCard({ id }: ProjectProps) {
     ?.filter((m: any) => m.achieved)
     .sort((a: any, b: any) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime())[0]?.name || "";
 
-
   const percent = (value: number) => {
     const raw = (value / project.milestones.length) * 100;
     return raw > 100 ? 100 : raw % 1 === 0 ? raw.toFixed(0) : raw.toFixed(1);
   };
-
 
   const ProgressBar = ({ value, color }: { value: number; color: string }) => {
     const p = percent(value);
@@ -110,9 +98,8 @@ export default function ProjectCard({ id }: ProjectProps) {
     );
   };
 
-  /** -------------------------------
-   *  PERMANENT CEMENT SAVE
-   * ------------------------------- */
+  /** DEDUCTIONS */
+
   const handleRunCementDeduction = async () => {
     const val = Number(inputCement || 0);
 
@@ -126,7 +113,6 @@ export default function ProjectCard({ id }: ProjectProps) {
 
     setCementFront(newCementLeft);
     setCementGiven(newCementGiven);
-
     setInputCement("");
 
     await supabase
@@ -138,13 +124,8 @@ export default function ProjectCard({ id }: ProjectProps) {
       .eq("id", id);
   };
 
-  /** -------------------------------
-   *  PERMANENT REBAR SAVE + 2 DECIMAL LIMIT
-   * ------------------------------- */
   const handleRunReinforcementDeduction = async (type: string) => {
     let val = Number(inputReinforcement[type] || 0);
-
-    /** ⭐ FORCE 2 decimals */
     val = Number(val.toFixed(2));
 
     if (val > reinforcementFront[type]) {
@@ -173,10 +154,12 @@ export default function ProjectCard({ id }: ProjectProps) {
       .eq("id", id);
   };
 
-  /** Minimal unchanged handlers */
   const handleRunAmountPaid = async () => {
     const amt = Number(inputAmountPaid || 0);
-    if (amountPaidFront + amt > contractSum) { alert("Contract sum exceeded"); return; }
+    if (amountPaidFront + amt > contractSum) {
+      alert("Contract sum exceeded");
+      return;
+    }
     const newValue = amountPaidFront + amt;
     setAmountPaidFront(newValue);
     setInputAmountPaid("");
@@ -185,7 +168,10 @@ export default function ProjectCard({ id }: ProjectProps) {
 
   const handleRunValueOfWorkDone = async () => {
     const val = Number(inputValueOfWorkDone || 0);
-    if (valueOfWorkDoneFront + val > contractSum) { alert("Contract sum exceeded"); return; }
+    if (valueOfWorkDoneFront + val > contractSum) {
+      alert("Contract sum exceeded");
+      return;
+    }
     const newValue = valueOfWorkDoneFront + val;
     setValueOfWorkDoneFront(newValue);
     setInputValueOfWorkDone("");
@@ -202,22 +188,37 @@ export default function ProjectCard({ id }: ProjectProps) {
     await supabase.from("projects").update({ milestones: updated }).eq("id", id);
   };
 
+  /** STATUS BADGE */
   let tagText = "";
   let tagColor = "";
-  if (valueOfWorkDoneFront < amountPaidFront) { tagText = "Exposed"; tagColor = "bg-red-500"; }
-  else if (valueOfWorkDoneFront > amountPaidFront) { tagText = "Not Exposed"; tagColor = "bg-green-500"; }
-  else { tagText = "Balanced"; tagColor = "bg-gray-500"; }
+  if (valueOfWorkDoneFront < amountPaidFront) {
+    tagText = "Exposed";
+    tagColor = "bg-red-500";
+  } else if (valueOfWorkDoneFront > amountPaidFront) {
+    tagText = "Not Exposed";
+    tagColor = "bg-green-500";
+  } else {
+    tagText = "Balanced";
+    tagColor = "bg-gray-500";
+  }
 
   return (
     <div
-      className="relative w-[320px] h-[460px] rounded-xl shadow-lg transition-transform duration-500"
-      style={{ transformStyle: "preserve-3d", transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
+      className="relative rounded-xl shadow-lg transition-transform duration-500 w-full"
+      style={{
+        height: "460px",
+        transformStyle: "preserve-3d",
+        transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
+      }}
     >
 
       {/* FRONT */}
       <div
         className="absolute inset-0 p-4 flex flex-col justify-between rounded-xl text-white"
-        style={{ backfaceVisibility: "hidden", background: "radial-gradient(circle at top right, #555555 5%, #000000 95%)" }}
+        style={{
+          backfaceVisibility: "hidden",
+          background: "radial-gradient(circle at top right, #555555 5%, #000000 95%)",
+        }}
       >
         <div>
           <h2 className="text-xl font-extrabold mb-1">{project.project_name}</h2>
@@ -235,6 +236,7 @@ export default function ProjectCard({ id }: ProjectProps) {
               <span>Cement:</span>
               <span className="bg-white/20 px-2 py-1 rounded">{cementFront.toLocaleString()} bags</span>
             </div>
+
             <div className="flex items-center gap-2 mt-1 text-[11px] font-semibold flex-nowrap overflow-x-auto">
               <span>Rebar:</span>
               {Object.entries(reinforcementFront).map(([type, qty]) => (
@@ -245,6 +247,7 @@ export default function ProjectCard({ id }: ProjectProps) {
             </div>
           </div>
 
+          {/* status */}
           <div
             className={`absolute top-2 right-2 px-2 py-0.5 text-sm rounded-md font-semibold ${tagColor} bg-opacity-80 backdrop-blur-sm border border-white/20`}
           >
@@ -297,7 +300,7 @@ export default function ProjectCard({ id }: ProjectProps) {
           backfaceVisibility: "hidden",
           transform: "rotateY(180deg)",
           background: "linear-gradient(135deg, #667eea, #764ba2)",
-          color: "white"
+          color: "white",
         }}
       >
         <h2 className="text-lg font-bold mb-2 drop-shadow-md">Milestones</h2>
@@ -322,12 +325,16 @@ export default function ProjectCard({ id }: ProjectProps) {
                 checked={m.achieved}
                 onChange={() => handleToggleMilestone(index, "achieved")}
               />
-              <span className="ml-1 text-[10px]">{m.timestamp ? new Date(m.timestamp).toLocaleString() : ""}</span>
+              <span className="ml-1 text-[10px]">
+                {m.timestamp ? new Date(m.timestamp).toLocaleString() : ""}
+              </span>
             </div>
           ))}
         </div>
 
+        {/* INPUT SECTIONS */}
         <div className="space-y-2 flex flex-col items-start text-[11px] mt-3">
+
           <div className="flex justify-between w-full items-center">
             <input
               type="text"
@@ -403,10 +410,9 @@ export default function ProjectCard({ id }: ProjectProps) {
           </div>
         </div>
 
-        {/* ⭐ PERSISTED DISPLAY */}
+        {/* TOTAL GIVEN */}
         <div className="mt-4 p-2 bg-black/20 rounded text-[11px]">
           <p className="font-bold">TOTAL GIVEN OUT</p>
-
           <p>Cement Given: {cementGiven} bags</p>
 
           <div className="flex gap-2 flex-wrap mt-1">
