@@ -12,8 +12,8 @@ export default function HomePage() {
 
     const contractorPasscodes: Record<string, string> = {
       DUTUM101: "Dutum",
-      OAT101: "OAT",
-      CURCEL101: "Curcel",
+      OAT: "OAT",
+      CURCEL: "Curcel",
       NETENGIN101: "Netengin",
       TABIS101: "Tabis",
       FASTTRACK101: "Fastrack",
@@ -23,9 +23,9 @@ export default function HomePage() {
 
     const normalUsers: Record<string, string> = {
       POTUS101T: "Captain",
-      TOMICOTS: "Sweet Queen",
+      TOMICOTS: "Tomi",
       "PETER.CB": "QS PETER",
-      "IFEANYI.CB": "Dr Ifeanyi",
+      "IFEANYI": "Dr Ifeanyi",
       "RICHARD.CB": "Dr Richard",
     };
 

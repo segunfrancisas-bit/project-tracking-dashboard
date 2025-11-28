@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import ReinforcementCard, { Status } from "@/app/components/ReinforcementCard";
+import PaymentCard, { Status } from "@/app/components/PaymentCard";
 
 interface ReinforcementItem {
   id: number;
@@ -12,6 +12,7 @@ interface ReinforcementItem {
   category: "BUILDING" | "INFRASTRUCTURE" | "PILING";
   status: Status;
   dateRequested: string;
+
   y10?: number;
   y12?: number;
   y16?: number;
@@ -33,8 +34,9 @@ interface ReinforcementItem {
 
 export default function ReinforcementPage() {
   const params = useParams();
-  const rawState = params?.state;
-  const state = Array.isArray(rawState) ? rawState[0]?.toUpperCase() : (rawState || "").toUpperCase();
+  const state = Array.isArray(params?.state)
+    ? params.state[0].toUpperCase()
+    : params?.state?.toUpperCase() ?? "";
 
   const [items, setItems] = useState<ReinforcementItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,32 +45,10 @@ export default function ReinforcementPage() {
   const fetchData = useCallback(async () => {
     if (!state) return;
     setLoading(true);
+
     const { data, error } = await supabase
       .from("reinforcement_request")
-      .select(
-        `id,
-        project,
-        contractor,
-        category,
-        status,
-        dateRequested,
-        y10,
-        y12,
-        y16,
-        y20,
-        y25,
-        y32,
-        sent_to_award,
-        sent_to_award_date,
-        sent_for_approval,
-        sent_for_approval_date,
-        approved,
-        approved_date,
-        sent_to_procurement,
-        sent_to_procurement_date,
-        delivered,
-        delivered_date`
-      )
+      .select("*")
       .eq("state", state)
       .order("dateRequested", { ascending: true });
 
@@ -86,45 +66,79 @@ export default function ReinforcementPage() {
     );
   };
 
-  const filtered = items.filter((it) => {
-    const t = search.toLowerCase();
+  const filtered = items.filter((item) => {
+    const term = search.toLowerCase();
+    const totalTons =
+      (item.y10 ?? 0) +
+      (item.y12 ?? 0) +
+      (item.y16 ?? 0) +
+      (item.y20 ?? 0) +
+      (item.y25 ?? 0) +
+      (item.y32 ?? 0);
     return (
-      it.project.toLowerCase().includes(t) ||
-      it.contractor.toLowerCase().includes(t) ||
-      it.status.toLowerCase().includes(t)
+      item.project.toLowerCase().includes(term) ||
+      item.contractor.toLowerCase().includes(term) ||
+      item.status.toLowerCase().includes(term) ||
+      totalTons.toString().includes(term) ||
+      item.dateRequested.toLowerCase().includes(term)
     );
   });
 
-  // Calculate the status counts (PENDING, OVERDUE, DELIVERED)
+  // Status overview
   const statusCounts = {
-    PENDING: items.filter((item) => item.status === "PENDING").length,
-    OVERDUE: items.filter((item) => item.status === "OVERDUE").length,
-    DELIVERED: items.filter((item) => item.status === "DELIVERED").length,
+    PENDING: items.filter((x) => x.status === "PENDING").length,
+    OVERDUE: items.filter((x) => x.status === "OVERDUE").length,
+    DELIVERED: items.filter((x) => x.status === "DELIVERED").length,
   };
 
   return (
     <div className="relative min-h-screen bg-[#FFFDF7] p-4 pb-16">
-      <h1 className="text-xl font-semibold text-center mb-6 text-black">REINFORCEMENT REQUEST – {state}</h1>
+      <h1 className="text-xl font-semibold text-center mb-6 text-black">
+        REINFORCEMENT REQUEST – {state}
+      </h1>
 
       <div className="mb-4 flex justify-center">
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by project, contractor or status..."
+          placeholder="Search by project, contractor, status or tonnage..."
           className="w-full max-w-md p-2 border rounded-full shadow-sm text-sm"
         />
       </div>
 
       <main>
         {loading ? (
-          <p className="text-center text-gray-500 mt-6 text-sm">Loading...</p>
+          <p className="text-center text-gray-500 mt-10">Loading...</p>
         ) : filtered.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filtered.map((item) => (
-              <ReinforcementCard
+              <PaymentCard
                 key={item.id}
-                {...item}
-                onUpdate={(updated) => handleCardUpdate(item.id, updated)}
+                id={item.id}
+                table="cement_request"
+                workflow="reinforcement"
+                project={item.project}
+                contractor={item.contractor}
+                category={item.category}
+                status={item.status}
+                dateRequested={item.dateRequested}
+                y10={item.y10}
+                y12={item.y12}
+                y16={item.y16}
+                y20={item.y20}
+                y25={item.y25}
+                y32={item.y32}
+                sent_to_award={item.sent_to_award}
+                sent_to_award_date={item.sent_to_award_date}
+                sent_for_approval={item.sent_for_approval}
+                sent_for_approval_date={item.sent_for_approval_date}
+                approved={item.approved}
+                approved_date={item.approved_date}
+                sent_to_procurement={item.sent_to_procurement}
+                sent_to_procurement_date={item.sent_to_procurement_date}
+                delivered={item.delivered}
+                delivered_date={item.delivered_date}
+                onUpdate={handleCardUpdate}
               />
             ))}
           </div>
@@ -133,7 +147,7 @@ export default function ReinforcementPage() {
         )}
       </main>
 
-      {/* Overview Box at the Bottom Right */}
+      {/* Status overview */}
       <div className="fixed bottom-4 right-4 p-3 bg-white shadow-sm rounded-lg border border-gray-300 text-sm">
         <h4 className="text-sm font-semibold text-gray-800 mb-2">Status Overview</h4>
         <div className="flex flex-col gap-2 text-xs text-gray-700">

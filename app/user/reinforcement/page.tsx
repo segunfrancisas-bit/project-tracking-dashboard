@@ -4,21 +4,35 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import PaymentCard from "../../components/PaymentCard";
 
+interface ReinforcementItem {
+  project: string;
+  contractor: string;
+  y10: number;
+  y12: number;
+  y16: number;
+  y20: number;
+  y25: number;
+  y32: number;
+  category: string;
+  status: "PENDING" | "OVERDUE" | "PAID" | "DELIVERED";
+  dateRequested: string;
+}
+
 export default function UserReinforcementRequest() {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<ReinforcementItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadData = async () => {
-    const { data, error } = await supabase
-      .from("reinforcement_request")
-      .select("*")
-      .order("dateRequested", { ascending: false });
-
-    if (!error) setItems(data || []);
-    setLoading(false);
-  };
-
   useEffect(() => {
+    const loadData = async () => {
+      const { data, error } = await supabase
+        .from("reinforcement_request")
+        .select("*")
+        .order("dateRequested", { ascending: false });
+
+      if (!error && data) setItems(data as ReinforcementItem[]);
+      setLoading(false);
+    };
+
     loadData();
   }, []);
 
@@ -34,11 +48,15 @@ export default function UserReinforcementRequest() {
             key={i}
             project={item.project}
             contractor={item.contractor}
-            category={item.category}
-            amount={item.tons}
-            unit="Tons"
+            category={item.category as any}
             status={item.status}
             dateRequested={item.dateRequested}
+            y10={item.y10}
+            y12={item.y12}
+            y16={item.y16}
+            y20={item.y20}
+            y25={item.y25}
+            y32={item.y32}
           />
         ))}
       </div>

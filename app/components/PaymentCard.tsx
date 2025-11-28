@@ -11,19 +11,26 @@ interface PaymentCardProps {
   workflow?: "reinforcement" | "payment";
   project: string;
   contractor: string;
-  amount?: number;
-  unit?: string;
   category: "BUILDING" | "INFRASTRUCTURE" | "PILING";
   status: Status;
   dateRequested?: string;
+
+  // Cement fields
+  amount?: number;
+  unit?: string;
+
+  // Milestone fields
   signOff?: string;
   presented?: string;
+
+  // Reinforcement sizes
   y10?: number;
   y12?: number;
   y16?: number;
   y20?: number;
   y25?: number;
   y32?: number;
+
   sent_to_award?: boolean;
   sent_to_award_date?: string | null;
   sent_for_approval?: boolean;
@@ -217,7 +224,7 @@ export default function PaymentCard(props: PaymentCardProps) {
             {presented && <div>Presented: {presented}</div>}
           </div>
 
-          {/* Flip button bottom-right */}
+          {/* Flip button */}
           <button
             onClick={() => setFlipped((s) => !s)}
             className="absolute bottom-2 right-2 text-xs bg-gray-900 px-2 py-1 rounded text-white"
@@ -229,7 +236,6 @@ export default function PaymentCard(props: PaymentCardProps) {
         {/* BACK */}
         <div className={backFace} style={{ transform: "rotateY(180deg)", backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}>
           <h4 className="text-[12px] font-semibold mb-2">Workflow</h4>
-
           <div className="space-y-1 text-[11px]">
             {steps.map(({ label, field }) => {
               const checked = !!local[field as keyof PaymentCardState];
@@ -253,10 +259,7 @@ export default function PaymentCard(props: PaymentCardProps) {
               );
             })}
           </div>
-
           <div className="mt-1 text-[10px] text-gray-700 italic">Click Flip to return to front</div>
-
-          {/* Flip button bottom-right */}
           <button
             onClick={() => setFlipped((s) => !s)}
             className="absolute bottom-2 right-2 text-[10px] bg-gray-900 px-2 py-1 rounded text-white"
