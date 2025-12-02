@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import PaymentCard, { Status } from "@/app/components/PaymentCard";
+import ReinforcementCard, { Status } from "@/app/components/ReinforcementCard";
 
 interface ReinforcementItem {
   id: number;
@@ -60,10 +60,9 @@ export default function ReinforcementPage() {
     fetchData();
   }, [fetchData]);
 
+  // when child updates a card (toggle), update the list so UI persists in this view
   const handleCardUpdate = (id: number | string, updated: Partial<ReinforcementItem>) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, ...updated } : item))
-    );
+    setItems(prev => prev.map(item => item.id === id ? { ...item, ...updated } : item));
   };
 
   const filtered = items.filter((item) => {
@@ -93,17 +92,10 @@ export default function ReinforcementPage() {
 
   return (
     <div className="relative min-h-screen bg-[#FFFDF7] p-4 pb-16">
-      <h1 className="text-xl font-semibold text-center mb-6 text-black">
-        REINFORCEMENT REQUEST – {state}
-      </h1>
+      <h1 className="text-xl font-semibold text-center mb-6 text-black">REINFORCEMENT REQUEST – {state}</h1>
 
       <div className="mb-4 flex justify-center">
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by project, contractor, status or tonnage..."
-          className="w-full max-w-md p-2 border rounded-full shadow-sm text-sm"
-        />
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by project, contractor, status or tonnage..." className="w-full max-w-md p-2 border rounded-full shadow-sm text-sm" />
       </div>
 
       <main>
@@ -112,11 +104,9 @@ export default function ReinforcementPage() {
         ) : filtered.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filtered.map((item) => (
-              <PaymentCard
+              <ReinforcementCard
                 key={item.id}
                 id={item.id}
-                table="cement_request"
-                workflow="reinforcement"
                 project={item.project}
                 contractor={item.contractor}
                 category={item.category}
@@ -147,22 +137,12 @@ export default function ReinforcementPage() {
         )}
       </main>
 
-      {/* Status overview */}
       <div className="fixed bottom-4 right-4 p-3 bg-white shadow-sm rounded-lg border border-gray-300 text-sm">
         <h4 className="text-sm font-semibold text-gray-800 mb-2">Status Overview</h4>
         <div className="flex flex-col gap-2 text-xs text-gray-700">
-          <div className="flex justify-between">
-            <div className="font-medium">PENDING:</div>
-            <div>{statusCounts.PENDING}</div>
-          </div>
-          <div className="flex justify-between">
-            <div className="font-medium">OVERDUE:</div>
-            <div>{statusCounts.OVERDUE}</div>
-          </div>
-          <div className="flex justify-between">
-            <div className="font-medium">DELIVERED:</div>
-            <div>{statusCounts.DELIVERED}</div>
-          </div>
+          <div className="flex justify-between"><div className="font-medium">PENDING:</div><div>{statusCounts.PENDING}</div></div>
+          <div className="flex justify-between"><div className="font-medium">OVERDUE:</div><div>{statusCounts.OVERDUE}</div></div>
+          <div className="flex justify-between"><div className="font-medium">DELIVERED:</div><div>{statusCounts.DELIVERED}</div></div>
         </div>
       </div>
     </div>

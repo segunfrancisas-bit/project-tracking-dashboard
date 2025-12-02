@@ -11,12 +11,7 @@ export default function HomePage() {
     e.preventDefault();
 
     const contractorPasscodes: Record<string, string> = {
-      DUTUM101: "Dutum",
-      OAT: "OAT",
-      CURCEL: "Curcel",
-      NETENGIN101: "Netengin",
-      TABIS101: "Tabis",
-      FASTTRACK101: "Fastrack",
+      FASTTRACK101: "Fasttrack",
       LAZ1: "LagosForm",
       ABZ1: "AbujaForm",
     };
@@ -25,8 +20,16 @@ export default function HomePage() {
       POTUS101T: "Captain",
       TOMICOTS: "Tomi",
       "PETER.CB": "QS PETER",
-      "IFEANYI": "Dr Ifeanyi",
+      IFEANYI: "Dr Ifeanyi",
       "RICHARD.CB": "Dr Richard",
+    };
+
+    // Clients
+    const clientPasscodes: Record<string, string> = {
+      OATX: "OAT",
+      TABISX: "TABIS",
+      DUTUMCC: "DUTUM",
+      NETENGINXX: "NETENGIN",
     };
 
     let url = "";
@@ -35,6 +38,8 @@ export default function HomePage() {
       url = `/entry/${contractorPasscodes[passcode]}`;
     } else if (normalUsers[passcode]) {
       url = `/dashboard?name=${normalUsers[passcode]}`;
+    } else if (clientPasscodes[passcode]) {
+      url = `/client-dashboard?client=${clientPasscodes[passcode]}`;
     }
 
     if (url) {
@@ -52,7 +57,6 @@ export default function HomePage() {
       }`}
       style={{ backgroundSize: "500% 500%" }}
     >
-      {/* VISION reveal */}
       {entering && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-black animate-vision-reveal tracking-tight">
@@ -100,14 +104,13 @@ export default function HomePage() {
       </footer>
 
       <style jsx>{`
-        /* Gradient Background Animation with Mint Green */
         .animate-gradient-xy {
           background: linear-gradient(
             -45deg,
             #ffb27a,
             #ffe9c7,
             #d6d6d6,
-            #d4f7dc, /* mint green added */
+            #d4f7dc,
             #fff48a,
             #bfbfbf,
             #ffe4b3,
@@ -157,7 +160,6 @@ export default function HomePage() {
           }
         }
 
-        /* VISION reveal smaller, sleeker, tighter spacing */
         @keyframes visionAppear {
           0% {
             opacity: 0;

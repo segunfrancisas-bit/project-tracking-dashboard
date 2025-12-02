@@ -18,16 +18,17 @@ interface ProjectFormProps {
 export default function ProjectForm({ state }: ProjectFormProps) {
   const [zone, setZone] = useState("Zone 1");
   const [category, setCategory] = useState("Building");
+
   const [projectName, setProjectName] = useState("");
   const [contractor, setContractor] = useState("");
   const [site, setSite] = useState("");
-  const [contractSum, setContractSum] = useState<string>("");
+  const [contractSum, setContractSum] = useState("");
 
   const [milestones, setMilestones] = useState<Milestone[]>([
     { name: "", amount: "" },
   ]);
 
-  const [cement, setCement] = useState<string>("");
+  const [cement, setCement] = useState("");
 
   const [reinforcement, setReinforcement] = useState<Record<string, string>>({
     y10: "",
@@ -41,6 +42,9 @@ export default function ProjectForm({ state }: ProjectFormProps) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // ----------------------------
+  // Helpers
+  // ----------------------------
   const parseNumber = (v: string) => {
     if (!v) return 0;
     const n = parseFloat(v.replace(/,/g, ""));
@@ -52,45 +56,61 @@ export default function ProjectForm({ state }: ProjectFormProps) {
     [milestones]
   );
 
-  const contractSumNumber = useMemo(() => parseNumber(contractSum), [contractSum]);
+  const contractSumNumber = useMemo(
+    () => parseNumber(contractSum),
+    [contractSum]
+  );
 
-  const updateMilestone = (index: number, field: "name" | "amount", value: string) => {
+  const updateMilestone = (
+    index: number,
+    field: "name" | "amount",
+    value: string
+  ) => {
     const copy = [...milestones];
     copy[index][field] = value;
     setMilestones(copy);
   };
 
-  const addMilestone = () => setMilestones([...milestones, { name: "", amount: "" }]);
+  const addMilestone = () =>
+    setMilestones([...milestones, { name: "", amount: "" }]);
 
   const removeMilestone = (i: number) => {
-    const copy = milestones.filter((_, idx) => idx !== i);
-    setMilestones(copy.length ? copy : [{ name: "", amount: "" }]);
+    const filtered = milestones.filter((_, idx) => idx !== i);
+    setMilestones(filtered.length ? filtered : [{ name: "", amount: "" }]);
   };
 
   const blockScroll = (e: any) => e.target.blur();
 
   const equal = (a: number, b: number) => Math.abs(a - b) < 0.0001;
 
+  // ----------------------------
+  // Submission
+  // ----------------------------
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
+    // validations
     if (!projectName || !contractor || !site) {
       setError("Project Name, Contractor and Site are required.");
       return;
     }
 
     for (let i = 0; i < milestones.length; i++) {
-      if (!milestones[i].name.trim()) {
+      const m = milestones[i];
+
+      if (!m.name.trim()) {
         setError(`Milestone ${i + 1} must have a name.`);
         return;
       }
-      if (!milestones[i].amount.trim()) {
+
+      if (!m.amount.trim()) {
         setError(`Milestone ${i + 1} must have an amount.`);
         return;
       }
-      if (isNaN(parseFloat(milestones[i].amount))) {
+
+      if (isNaN(parseFloat(m.amount))) {
         setError(`Milestone ${i + 1} has invalid amount.`);
         return;
       }
@@ -110,14 +130,16 @@ export default function ProjectForm({ state }: ProjectFormProps) {
       category,
 
       contract_sum: contractSumNumber,
-
       cement: parseNumber(cement),
-      y10: parseNumber(reinforcement.y10),
-      y12: parseNumber(reinforcement.y12),
-      y16: parseNumber(reinforcement.y16),
-      y20: parseNumber(reinforcement.y20),
-      y25: parseNumber(reinforcement.y25),
-      y32: parseNumber(reinforcement.y32),
+
+      reinforcement_given: {
+        y10: parseNumber(reinforcement.y10),
+        y12: parseNumber(reinforcement.y12),
+        y16: parseNumber(reinforcement.y16),
+        y20: parseNumber(reinforcement.y20),
+        y25: parseNumber(reinforcement.y25),
+        y32: parseNumber(reinforcement.y32),
+      },
 
       amount_paid: 0,
       value_of_work_done: 0,
@@ -142,19 +164,34 @@ export default function ProjectForm({ state }: ProjectFormProps) {
 
     setSuccess("Project created successfully!");
 
+    // reset fields
     setProjectName("");
     setContractor("");
     setSite("");
     setContractSum("");
     setMilestones([{ name: "", amount: "" }]);
     setCement("");
-    setReinforcement({ y10: "", y12: "", y16: "", y20: "", y25: "", y32: "" });
+    setReinforcement({
+      y10: "",
+      y12: "",
+      y16: "",
+      y20: "",
+      y25: "",
+      y32: "",
+    });
   };
 
+  // ----------------------------
+  // JSX
+  // ----------------------------
   return (
-    <form onSubmit={handleSubmit} className="p-4 glass-card max-w-2xl mx-auto">
+    <form
+      onSubmit={handleSubmit}
+      className="p-4 glass-card max-w-2xl mx-auto"
+    >
       <h1 className="text-2xl font-bold mb-4">{state} Project Form</h1>
 
+      {/* Project Name */}
       <label className="block">Project Name</label>
       <input
         className="input"
@@ -162,6 +199,7 @@ export default function ProjectForm({ state }: ProjectFormProps) {
         onChange={(e) => setProjectName(e.target.value)}
       />
 
+      {/* Contractor */}
       <label className="block mt-3">Contractor</label>
       <input
         className="input"
@@ -169,6 +207,7 @@ export default function ProjectForm({ state }: ProjectFormProps) {
         onChange={(e) => setContractor(e.target.value)}
       />
 
+      {/* Site */}
       <label className="block mt-3">Site</label>
       <input
         className="input"
@@ -176,6 +215,7 @@ export default function ProjectForm({ state }: ProjectFormProps) {
         onChange={(e) => setSite(e.target.value)}
       />
 
+      {/* Zone / Category */}
       <div className="grid grid-cols-2 gap-3 mt-3">
         <div>
           <label>Zone</label>
@@ -204,15 +244,17 @@ export default function ProjectForm({ state }: ProjectFormProps) {
         </div>
       </div>
 
+      {/* Contract Sum */}
       <label className="block mt-3">Contract Sum (₦)</label>
       <input
         className="input"
         inputMode="decimal"
         value={contractSum}
-        onChange={(e) => setContractSum(e.target.value)}
         onWheel={blockScroll}
+        onChange={(e) => setContractSum(e.target.value)}
       />
 
+      {/* Milestones */}
       <h2 className="text-xl font-semibold mt-5 mb-2">Milestones</h2>
 
       {milestones.map((m, index) => (
@@ -233,7 +275,9 @@ export default function ProjectForm({ state }: ProjectFormProps) {
               inputMode="decimal"
               value={m.amount}
               onWheel={blockScroll}
-              onChange={(e) => updateMilestone(index, "amount", e.target.value)}
+              onChange={(e) =>
+                updateMilestone(index, "amount", e.target.value)
+              }
             />
 
             <button
@@ -255,51 +299,58 @@ export default function ProjectForm({ state }: ProjectFormProps) {
         + Add Milestone
       </button>
 
+      {/* Total */}
       <div className="mt-3 font-semibold">
         Milestone Total:{" "}
         <span
           style={{
-            color: equal(milestoneTotal, contractSumNumber) ? "green" : "red",
+            color: equal(milestoneTotal, contractSumNumber)
+              ? "green"
+              : "red",
           }}
         >
           ₦{milestoneTotal.toLocaleString()}
         </span>
       </div>
 
+      {/* Cement */}
       <h2 className="text-xl font-semibold mt-5">Materials</h2>
 
       <label className="block mt-2">Cement</label>
       <input
         className="input"
         value={cement}
-        onChange={(e) => setCement(e.target.value)}
         onWheel={blockScroll}
+        onChange={(e) => setCement(e.target.value)}
       />
 
+      {/* Reinforcement */}
       <h3 className="font-semibold mt-3">Reinforcement (tons)</h3>
       <div className="grid grid-cols-2 gap-3">
-        {["y10", "y12", "y16", "y20", "y25", "y32"].map((item) => (
-          <div key={item}>
-            <label>{item.toUpperCase()}</label>
+        {["y10", "y12", "y16", "y20", "y25", "y32"].map((type) => (
+          <div key={type}>
+            <label>{type.toUpperCase()}</label>
             <input
               className="input"
               inputMode="decimal"
-              value={reinforcement[item]}
+              value={reinforcement[type]}
+              onWheel={blockScroll}
               onChange={(e) =>
                 setReinforcement((prev) => ({
                   ...prev,
-                  [item]: e.target.value,
+                  [type]: e.target.value,
                 }))
               }
-              onWheel={blockScroll}
             />
           </div>
         ))}
       </div>
 
+      {/* Messages */}
       {error && <p className="text-red-600 mt-4">{error}</p>}
       {success && <p className="text-green-600 mt-4">{success}</p>}
 
+      {/* Submit */}
       <button className="w-full mt-6 bg-black text-white py-3 rounded-lg">
         Submit
       </button>
