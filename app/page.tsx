@@ -12,13 +12,16 @@ export default function HomePage() {
 
     const contractorPasscodes: Record<string, string> = {
       FASTTRACK101: "Fasttrack",
-      LAZ1: "LagosForm",
-      ABZ1: "AbujaForm",
+      LAZ123: "LagosForm",
+      ABZ123: "AbujaForm",
     };
 
     const normalUsers: Record<string, string> = {
       POTUS101T: "Captain",
       TOMICOTS: "Tomi",
+      FINANCEX: "Finance",
+      AUDITX: "Audit",
+      PDX: "Project Director",
       "PETER.CB": "QS PETER",
       IFEANYI: "Dr Ifeanyi",
       "RICHARD.CB": "Dr Richard",
@@ -28,8 +31,29 @@ export default function HomePage() {
     const clientPasscodes: Record<string, string> = {
       OATX: "OAT",
       TABISX: "TABIS",
-      DUTUMCC: "DUTUM",
-      NETENGINXX: "NETENGIN",
+      DUTUMX: "DUTUM",
+      UPWORKX: "UPWORK",
+      ADETECHX: "ADETECH",
+      STRATOTEKX: "STRATOTEK",
+      HIBIMSX: "HIBIMS",
+      CONSOLATEX: "CONSOLATE",
+      ASHMARKX: "ASHMARK",
+      SIXPACX: "6PAC",
+      REALMYTEX: "REALMYTE",
+      LEKANDOX: "LEKANDO",
+      CONPLANX: "CONPLAN",
+      VICAGOLDENX: "VICAGOLDEN",
+      NEEDPLUSX: "NEEDPLUS",
+      COMMUNALX: "COMMUNAL",
+      FASTRACKX: "FASTRACK",
+      ARCHSPANX: "ARCHSPAN",
+      STRIDDERX: "STRIDDER",
+      GOLDVIEWX: "GOLDVIEW",
+      ETONGATEX: "ETONGATE",
+      RITSPECX: "RITSPEC",
+      MOJAYX: "MOJAY",
+      TUNDERSPARKX: "TUNDERSPARK",
+      NETENGINX: "NETENGIN",
     };
 
     let url = "";
