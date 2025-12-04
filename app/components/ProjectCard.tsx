@@ -11,6 +11,8 @@ export default function ProjectCard({ id }: ProjectProps) {
   const [project, setProject] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [flipped, setFlipped] = useState(false);
+  const [cashCleared, setCashCleared] = useState(false); // NEW
+  const [cashPaid, setCashPaid] = useState(false); // ✅ NEW: tracks if paid
 
   const [inputAmountPaid, setInputAmountPaid] = useState<string>("");
   const [inputValueOfWorkDone, setInputValueOfWorkDone] = useState<string>("");
@@ -34,13 +36,43 @@ export default function ProjectCard({ id }: ProjectProps) {
         .single();
 
       if (!error && data) {
+        let updatedMilestones = [...data.milestones];
+        const today = new Date().toISOString().split("T")[0];
+
+        /** AUTO-TICK TARGETS BASED ON target_date */
+        let autoUpdated = false;
+
+        updatedMilestones = updatedMilestones.map((m: any) => {
+          if (!m.target_date) return m;
+
+          const milestoneDate = m.target_date;
+
+          if (milestoneDate <= today && !m.target) {
+            m.target = true;
+            m.timestamp = new Date().toISOString();
+            autoUpdated = true;
+          }
+
+          return m;
+        });
+
+        if (autoUpdated) {
+          await supabase
+            .from("projects")
+            .update({ milestones: updatedMilestones })
+            .eq("id", id);
+        }
+
+        data.milestones = updatedMilestones;
+
         setProject(data);
 
         setAmountPaidFront(Number(data.amount_paid || 0));
         setValueOfWorkDoneFront(Number(data.value_of_work_done || 0));
         setCementFront(Number(data.cement || 0));
+        setCashCleared(Boolean(data.cash_cleared || false)); // ✅ load flag
 
-        /** Load reinforcement from JSONB correctly */
+        /** Load reinforcement JSONB */
         const reinforcementData: Record<string, number> = {};
         const raw = data.reinforcement_given || {};
 
@@ -49,6 +81,17 @@ export default function ProjectCard({ id }: ProjectProps) {
         });
 
         setReinforcementFront(reinforcementData);
+
+        /** ✅ NEW: check if any cash_mobilization row is paid */
+        const { data: cashData, error: cashError } = await supabase
+          .from("cash_mobilization")
+          .select("*")
+          .eq("project", data.project_name)
+          .eq("paid", true);
+
+        if (!cashError && cashData && cashData.length > 0) {
+          setCashPaid(true);
+        }
       }
 
       setLoading(false);
@@ -81,8 +124,7 @@ export default function ProjectCard({ id }: ProjectProps) {
       ?.filter((m: any) => m.target)
       .sort(
         (a: any, b: any) =>
-          new Date(b.timestamp || 0).getTime() -
-          new Date(a.timestamp || 0).getTime()
+          new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime()
       )[0]?.name || "";
 
   const mostRecentAchieved =
@@ -90,8 +132,7 @@ export default function ProjectCard({ id }: ProjectProps) {
       ?.filter((m: any) => m.achieved)
       .sort(
         (a: any, b: any) =>
-          new Date(b.timestamp || 0).getTime() -
-          new Date(a.timestamp || 0).getTime()
+          new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime()
       )[0]?.name || "";
 
   const percent = (value: number) => {
@@ -291,7 +332,7 @@ export default function ProjectCard({ id }: ProjectProps) {
         </button>
       </div>
 
-      {/* BACK — CLEAN VERSION (NO MATERIALS) */}
+      {/* BACK */}
       <div
         className="absolute inset-0 p-3 rounded-xl overflow-y-auto"
         style={{
@@ -314,6 +355,11 @@ export default function ProjectCard({ id }: ProjectProps) {
                 {m.name}
               </div>
 
+              {/* TARGET DATE */}
+              <div className="text-[9px] bg-black/20 px-2 py-1 rounded">
+                {m.target_date}
+              </div>
+
               <input
                 type="checkbox"
                 checked={m.target}
@@ -333,7 +379,41 @@ export default function ProjectCard({ id }: ProjectProps) {
           ))}
         </div>
 
-        {/* ONLY MONEY INPUTS REMAIN */}
+        {/* Cash Mobilization Section */}
+        <div className="mt-4">
+          <p className="text-[11px] font-semibold mb-1">Cash Mobilization</p>
+          <div className="flex items-center gap-2">
+            {/* Amount stays visible */}
+            <span className="bg-white/20 px-2 py-1 rounded text-black">
+              ₦{Number(project.cash_mobilization || 0).toLocaleString()}
+            </span>
+
+            {/* Clear / Paid button */}
+            <button
+              onClick={async () => {
+                if (!cashPaid) {
+                  await supabase
+                    .from("projects")
+                    .update({ cash_cleared: true })
+                    .eq("id", id);
+                  setCashCleared(true);
+                }
+              }}
+              className={`px-2 py-1 text-white text-[10px] rounded ${
+                cashPaid
+                  ? "bg-green-600 cursor-default"
+                  : cashCleared
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-red-600 hover:bg-red-700"
+              }`}
+              disabled={cashPaid} // ✅ cannot click if fully paid
+            >
+              {cashPaid ? "PAID" : cashCleared ? "Cleared" : "Clear"}
+            </button>
+          </div>
+        </div>
+
+        {/* ONLY MONEY INPUTS */}
         <div className="space-y-2 flex flex-col items-start text-[11px] mt-3">
           <div className="flex justify-between w-full items-center">
             <input

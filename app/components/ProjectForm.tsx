@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import * as XLSX from "xlsx";
 
 type Milestone = {
   name: string;
@@ -9,6 +10,7 @@ type Milestone = {
   target?: boolean;
   achieved?: boolean;
   achieved_at?: string | null;
+  target_date?: string;
 };
 
 interface ProjectFormProps {
@@ -24,12 +26,13 @@ export default function ProjectForm({ state }: ProjectFormProps) {
   const [site, setSite] = useState("");
   const [contractSum, setContractSum] = useState("");
 
+  const [cashMobilization, setCashMobilization] = useState(""); // NEW FIELD
+
   const [milestones, setMilestones] = useState<Milestone[]>([
     { name: "", amount: "" },
   ]);
 
   const [cement, setCement] = useState("");
-
   const [reinforcement, setReinforcement] = useState<Record<string, string>>({
     y10: "",
     y12: "",
@@ -41,6 +44,8 @@ export default function ProjectForm({ state }: ProjectFormProps) {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const dropRef = useRef<HTMLDivElement>(null);
 
   // ----------------------------
   // Helpers
@@ -56,14 +61,23 @@ export default function ProjectForm({ state }: ProjectFormProps) {
     [milestones]
   );
 
-  const contractSumNumber = useMemo(
-    () => parseNumber(contractSum),
-    [contractSum]
+  const cashMobilizationNumber = useMemo(
+    () => parseNumber(cashMobilization),
+    [cashMobilization]
   );
+
+  const totalIncludingCash = useMemo(
+    () => milestoneTotal + cashMobilizationNumber,
+    [milestoneTotal, cashMobilizationNumber]
+  );
+
+  const contractSumNumber = useMemo(() => parseNumber(contractSum), [
+    contractSum,
+  ]);
 
   const updateMilestone = (
     index: number,
-    field: "name" | "amount",
+    field: "name" | "amount" | "target_date",
     value: string
   ) => {
     const copy = [...milestones];
@@ -80,8 +94,83 @@ export default function ProjectForm({ state }: ProjectFormProps) {
   };
 
   const blockScroll = (e: any) => e.target.blur();
-
   const equal = (a: number, b: number) => Math.abs(a - b) < 0.0001;
+
+  // ----------------------------
+  // Excel Upload
+  // ----------------------------
+  const parseExcelDate = (excelDate: any) => {
+    let formattedDate = "";
+    if (excelDate) {
+      if (typeof excelDate === "number") {
+        const date = XLSX.SSF.parse_date_code(excelDate);
+        formattedDate = `${date.y.toString().padStart(4, "0")}-${date.m
+          .toString()
+          .padStart(2, "0")}-${date.d.toString().padStart(2, "0")}`;
+      } else if (excelDate instanceof Date) {
+        formattedDate = excelDate.toISOString().split("T")[0];
+      } else if (typeof excelDate === "string") {
+        const d = new Date(excelDate);
+        if (!isNaN(d.getTime())) {
+          formattedDate = d.toISOString().split("T")[0];
+        }
+      }
+    }
+    return formattedDate;
+  };
+
+  const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data);
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+    const uploadedMilestones = json.map((row: any) => ({
+      name: row.name || "",
+      amount: row.amount ? String(row.amount) : "",
+      target_date: parseExcelDate(row["target date"] || row["target_date"]),
+      target: false,
+      achieved: false,
+      achieved_at: null,
+    }));
+
+    setMilestones(uploadedMilestones);
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+      const uploadedMilestones = json.map((row: any) => ({
+        name: row.name || "",
+        amount: row.amount ? String(row.amount) : "",
+        target_date: parseExcelDate(row["target date"] || row["target_date"]),
+        target: false,
+        achieved: false,
+        achieved_at: null,
+      }));
+
+      setMilestones(uploadedMilestones);
+      e.dataTransfer.clearData();
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   // ----------------------------
   // Submission
@@ -91,7 +180,6 @@ export default function ProjectForm({ state }: ProjectFormProps) {
     setError("");
     setSuccess("");
 
-    // validations
     if (!projectName || !contractor || !site) {
       setError("Project Name, Contractor and Site are required.");
       return;
@@ -99,25 +187,22 @@ export default function ProjectForm({ state }: ProjectFormProps) {
 
     for (let i = 0; i < milestones.length; i++) {
       const m = milestones[i];
-
       if (!m.name.trim()) {
         setError(`Milestone ${i + 1} must have a name.`);
         return;
       }
-
       if (!m.amount.trim()) {
         setError(`Milestone ${i + 1} must have an amount.`);
         return;
       }
-
       if (isNaN(parseFloat(m.amount))) {
         setError(`Milestone ${i + 1} has invalid amount.`);
         return;
       }
     }
 
-    if (!equal(milestoneTotal, contractSumNumber)) {
-      setError("Milestone total MUST match Contract Sum.");
+    if (!equal(totalIncludingCash, contractSumNumber)) {
+      setError("Milestone total + Cash Mobilization MUST match Contract Sum.");
       return;
     }
 
@@ -128,10 +213,8 @@ export default function ProjectForm({ state }: ProjectFormProps) {
       state,
       zone,
       category,
-
       contract_sum: contractSumNumber,
       cement: parseNumber(cement),
-
       reinforcement_given: {
         y10: parseNumber(reinforcement.y10),
         y12: parseNumber(reinforcement.y12),
@@ -140,18 +223,17 @@ export default function ProjectForm({ state }: ProjectFormProps) {
         y25: parseNumber(reinforcement.y25),
         y32: parseNumber(reinforcement.y32),
       },
-
       amount_paid: 0,
       value_of_work_done: 0,
-
+      cash_mobilization: cashMobilizationNumber, // NEW FIELD
       milestones: milestones.map((m) => ({
         name: m.name,
         amount: parseNumber(m.amount),
+        target_date: m.target_date || null,
         target: false,
         achieved: false,
         achieved_at: null,
       })),
-
       target_total: 0,
       achieved_total: 0,
     };
@@ -163,12 +245,12 @@ export default function ProjectForm({ state }: ProjectFormProps) {
     }
 
     setSuccess("Project created successfully!");
-
     // reset fields
     setProjectName("");
     setContractor("");
     setSite("");
     setContractSum("");
+    setCashMobilization(""); // reset
     setMilestones([{ name: "", amount: "" }]);
     setCement("");
     setReinforcement({
@@ -215,6 +297,16 @@ export default function ProjectForm({ state }: ProjectFormProps) {
         onChange={(e) => setSite(e.target.value)}
       />
 
+      {/* Cash Mobilization */}
+      <label className="block mt-3">Cash Mobilization (₦)</label>
+      <input
+        className="input"
+        inputMode="decimal"
+        value={cashMobilization}
+        onWheel={blockScroll}
+        onChange={(e) => setCashMobilization(e.target.value)}
+      />
+
       {/* Zone / Category */}
       <div className="grid grid-cols-2 gap-3 mt-3">
         <div>
@@ -254,9 +346,25 @@ export default function ProjectForm({ state }: ProjectFormProps) {
         onChange={(e) => setContractSum(e.target.value)}
       />
 
+      {/* Excel Upload / Drag and Drop */}
+      <label className="block mt-4 font-semibold">Upload Milestones Excel</label>
+      <div
+        ref={dropRef}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        className="border-2 border-dashed border-gray-400 p-6 rounded-lg text-center text-gray-500 cursor-pointer hover:border-gray-600 transition mb-4"
+      >
+        Drag & drop your Excel file here, or click to select
+        <input
+          type="file"
+          accept=".xlsx, .xls"
+          onChange={handleExcelUpload}
+          className="hidden"
+        />
+      </div>
+
       {/* Milestones */}
       <h2 className="text-xl font-semibold mt-5 mb-2">Milestones</h2>
-
       {milestones.map((m, index) => (
         <div key={index} className="border p-3 rounded-lg mb-3 bg-white/80">
           <p className="font-semibold mb-2">Milestone {index + 1}</p>
@@ -279,7 +387,6 @@ export default function ProjectForm({ state }: ProjectFormProps) {
                 updateMilestone(index, "amount", e.target.value)
               }
             />
-
             <button
               type="button"
               className="px-3 py-1 bg-red-600 text-white rounded"
@@ -288,12 +395,22 @@ export default function ProjectForm({ state }: ProjectFormProps) {
               X
             </button>
           </div>
+
+          <label className="mt-2 block">Target Date</label>
+          <input
+            type="date"
+            className="input"
+            value={m.target_date || ""}
+            onChange={(e) =>
+              updateMilestone(index, "target_date", e.target.value)
+            }
+          />
         </div>
       ))}
 
       <button
         type="button"
-        className="bg-black text-white px-3 py-2 rounded"
+        className="bg-black text-white px-3 py-2 rounded mb-4"
         onClick={addMilestone}
       >
         + Add Milestone
@@ -301,15 +418,13 @@ export default function ProjectForm({ state }: ProjectFormProps) {
 
       {/* Total */}
       <div className="mt-3 font-semibold">
-        Milestone Total:{" "}
+        Total (Milestones + Cash Mobilization):{" "}
         <span
           style={{
-            color: equal(milestoneTotal, contractSumNumber)
-              ? "green"
-              : "red",
+            color: equal(totalIncludingCash, contractSumNumber) ? "green" : "red",
           }}
         >
-          ₦{milestoneTotal.toLocaleString()}
+          ₦{totalIncludingCash.toLocaleString()}
         </span>
       </div>
 

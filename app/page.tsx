@@ -52,21 +52,34 @@ export default function HomePage() {
 
   return (
     <div
-      className={`relative flex flex-col justify-between min-h-screen items-center px-4 text-black animate-gradient-xy ${
+      className={`relative flex flex-col justify-between min-h-screen items-center px-4 text-black ${
         entering ? "screen-fade-out" : ""
       }`}
-      style={{ backgroundSize: "500% 500%" }}
     >
+      {/* Video background */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      >
+        <source src="/videos/beach.mp4" type="video/mp4" />
+      </video>
+
+      {/* Overlay to make text readable */}
+      <div className="absolute inset-0 bg-black/30"></div>
+
       {entering && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-black animate-vision-reveal tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white animate-vision-reveal tracking-tight">
             ViSiON🌴
           </h1>
         </div>
       )}
 
-      <div className="flex flex-col items-center justify-center flex-1 w-full max-w-md content-wrapper">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-8 text-center whitespace-nowrap drop-shadow-lg animate-pulse-slow">
+      <div className="flex flex-col items-center justify-center flex-1 w-full max-w-md content-wrapper relative z-10">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-8 text-center whitespace-nowrap drop-shadow-lg animate-pulse-slow text-white">
           Welcome to Vision - Your #1 Project Tracker
         </h1>
 
@@ -90,7 +103,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <footer className="w-full p-4 text-center text-sm text-black/80 bg-transparent drop-shadow-md content-wrapper">
+      <footer className="w-full p-4 text-center text-sm text-black/80 bg-transparent drop-shadow-md content-wrapper relative z-10">
         © 2025 Vision by{" "}
         <a
           href="https://mail.google.com/mail/?view=cm&fs=1&to=segunfrancisas@gmail.com&su=Request%20for%20Passkey&body=Hello%20Iroko,"
@@ -104,33 +117,6 @@ export default function HomePage() {
       </footer>
 
       <style jsx>{`
-        .animate-gradient-xy {
-          background: linear-gradient(
-            -45deg,
-            #ffb27a,
-            #ffe9c7,
-            #d6d6d6,
-            #d4f7dc,
-            #fff48a,
-            #bfbfbf,
-            #ffe4b3,
-            #e0dfdf
-          );
-          animation: gradient-xy 12s ease-in-out infinite;
-        }
-
-        @keyframes gradient-xy {
-          0% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-          100% {
-            background-position: 0% 50%;
-          }
-        }
-
         @keyframes pulse-slow {
           0%,
           100% {
