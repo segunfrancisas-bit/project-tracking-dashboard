@@ -3,6 +3,20 @@
 import { useState } from "react";
 
 export default function HomePage() {
+  const getVideoForTime = () => {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const time = hours + minutes / 60; // convert to decimal (e.g., 14.5 = 2:30pm)
+
+    if (time >= 5 && time < 7) return "/videos/beach1.mp4";         // 5am – 7am
+    if (time >= 7 && time < 14.5) return "/videos/beach2.mp4";      // 7am – 2:30pm
+    if (time >= 14.5 && time < 18) return "/videos/beach3.mp4";     // 2:30pm – 6pm
+    if (time >= 18 && time < 21) return "/videos/beach4.mp4";       // 6pm – 9pm
+    return "/videos/beach5.mp4";                                    // 9pm – 5am (night)
+  };
+
+  const [videoSrc] = useState(getVideoForTime());
   const [passcode, setPasscode] = useState("");
   const [error, setError] = useState("");
   const [entering, setEntering] = useState(false);
@@ -27,7 +41,6 @@ export default function HomePage() {
       "RICHARD.CB": "Dr Richard",
     };
 
-    // Clients
     const clientPasscodes: Record<string, string> = {
       OATX: "OAT",
       TABISX: "TABIS",
@@ -80,7 +93,7 @@ export default function HomePage() {
         entering ? "screen-fade-out" : ""
       }`}
     >
-      {/* Video background */}
+      {/* Dynamic Time-Based Background Video */}
       <video
         autoPlay
         loop
@@ -88,10 +101,9 @@ export default function HomePage() {
         playsInline
         className="absolute inset-0 w-full h-full object-cover"
       >
-        <source src="/videos/beach.mp4" type="video/mp4" />
+        <source src={videoSrc} type="video/mp4" />
       </video>
 
-      {/* Overlay to make text readable */}
       <div className="absolute inset-0 bg-black/30"></div>
 
       {entering && (
