@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";  // <-- ADD THIS
 
 import { useState } from "react";
 
@@ -57,6 +58,7 @@ export default function HomePage() {
       CONPLANX: "CONPLAN",
       VICAGOLDENX: "VICAGOLDEN",
       NEEDPLUSX: "NEEDPLUS",
+      EJIKEX: "EJIKE",
       COMMUNALX: "COMMUNAL",
       FASTRACKX: "FASTRACK",
       ARCHSPANX: "ARCHSPAN",
