@@ -1,3 +1,5 @@
+"use client"; // must be the first line
+
 import { createClient } from "@supabase/supabase-js";
 
 // Use environment variables instead of hardcoding

@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -114,7 +115,11 @@ function DashboardContent() {
 
 export default function ClientDashboardPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading dashboard...</div>}>
+    <Suspense
+      fallback={
+        <div className="p-6 text-center text-gray-500">Loading dashboard...</div>
+      }
+    >
       <DashboardContent />
     </Suspense>
   );
