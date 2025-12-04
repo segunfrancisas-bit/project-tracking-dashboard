@@ -54,11 +54,11 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen w-full bg-gray-50 py-10 px-6">
-      {/* Header: OAT PROJECTS + Search */}
+      {/* Header: PROJECTS + Search */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-10 gap-4">
-        {/* OAT PROJECTS with pulsing */}
+        {/* PROJECTS with pulsing */}
         <h1 className="text-3xl font-extrabold text-gray-900 animate-pulse">
-          OAT PROJECTS
+          PROJECTS
         </h1>
 
         {/* Search bar */}
